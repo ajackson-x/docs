@@ -33,12 +33,6 @@
         "groups": [
           {
             "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint Examples",
             "openapi": "openapi.yml"
           }
         ]
