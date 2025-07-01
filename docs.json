@@ -33,7 +33,7 @@
         "groups": [
           {
             "group": "API Documentation",
-            "openapi": "openapi.yml"
+            "openapi": "openapi.yaml"
           }
         ]
       }
