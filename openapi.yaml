@@ -20,47 +20,17 @@ servers:
     description: Production server
 security:
   - basicAuth: []
-tags:
-  - name: Envelopes
-    description: Operations related to a collection of documents to be signed
-  - name: Templates
-    description: Operations related to a document templates
-  - name: Contacts
-    description: Operations related to contacts within Signable. These are individuals that can receive documents
-  - name: Users
-    description: Operations related to Signable users. These are indivduals with access to the Signable Web Application
+x-tagsGroups:
   - name: Branding
-    description: Operations related to the branding of a Signable account
+    tags:
+      - Branding
   - name: Settings
-    description: >
-      Your Signable account settings control how documents are delivered, signed, and managed across your team.<br>
-      <br>
-      This section of the API lets you retrieve and update your company's signing preferences, email notification 
-      rules, signature formats, and more—giving you full control over how your documents behave.<br>
-      <br>
-      Settings can be accessed via the API or in the Signable web app under 
-      Company Settings > [Preferences](https://signable.app/company-settings/preferences).<br>
-      <br>
+    tags:
+      - Settings
   - name: Webhooks
-    description: >
-      Webhooks let you know when something happens in your Signable account—automatically and in real time.<br>
-      <br>
-      Whether it’s an envelope being sent, signed, or rejected, webhooks allow you to respond instantly by 
-      triggering an event in your own system.<br>
-      <br>
-      When triggered, we’ll send a `POST` request to your chosen URL with all the relevant details. You can then 
-      handle that data however you like—update records, notify a team, kick off an integration, and more.<br>
-      <br>
-      All webhook requests are `POST` and sent using the `application/x-www-form-urlencoded` content type. To 
-      confirm you've received the webhook, simply return a `200` status code. If a webhook does not receive 
-      a `200` response for 3 consecutive days, it will be suspended.<br>
-      <br>
-      You can create and manage webhooks via the API or in the Signable web app under 
-      Company Settings > [API & Webhooks](https://signable.app/company-settings/developer).<br>
-      <br>
-      Webhooks are not available to PAYG customers.<br>
-      <br>
-
+    tags:
+      - Webhooks
+      
 webhooks:
   send-envelope:
     post:
@@ -189,7 +159,14 @@ paths:
     get:
       summary: Get company settings
       description: >
-        Returns a list of configuration settings applied to the authenticated user's company account.
+        Your Signable account settings control how documents are delivered, signed, and managed across your team.<br>
+        <br>
+        This section of the API lets you retrieve and update your company's signing preferences, email notification 
+        rules, signature formats, and more—giving you full control over how your documents behave.<br>
+        <br>
+        Settings can be accessed via the API or in the Signable web app under 
+        Company Settings > [Preferences](https://signable.app/company-settings/preferences).<br>
+        <br>
       operationId: listSettings
       tags:
         - Settings

@@ -1,0 +1,24 @@
+---
+title: 'What are webhooks?'
+description: 'Hook into the world of Signable'
+---
+
+## Setup your development
+
+Webhooks let you know when something happens in your Signable account—automatically and in real time.<br>
+<br>
+Whether it’s an envelope being sent, signed, or rejected, webhooks allow you to respond instantly by 
+triggering an event in your own system.<br>
+<br>
+When triggered, we’ll send a `POST` request to your chosen URL with all the relevant details. You can then 
+handle that data however you like—update records, notify a team, kick off an integration, and more.<br>
+<br>
+All webhook requests are `POST` and sent using the `application/x-www-form-urlencoded` content type. To 
+confirm you've received the webhook, simply return a `200` status code. If a webhook does not receive 
+a `200` response for 3 consecutive days, it will be suspended.<br>
+<br>
+You can create and manage webhooks via the API or in the Signable web app under 
+Company Settings > [API & Webhooks](https://signable.app/company-settings/developer).<br>
+<br>
+Webhooks are not available to PAYG customers.<br>
+<br>
