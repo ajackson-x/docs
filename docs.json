@@ -4,7 +4,7 @@
   "name": "Signable API",
   "colors": {
     "primary": "#0095E6",
-    "light": "#07C983",
+    "light": "#0095E6",
     "dark": "#15803D"
   },
   "favicon": "/favicon.png",
@@ -23,7 +23,7 @@
           {
             "group": "Possibilities",
             "pages": [
-              "So much more coming/markdown"
+              "So much more coming"
             ]
           }
         ]
@@ -39,12 +39,7 @@
           },
           {
             "group": "Endpoint Examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
+            "openapi": "openapi.yml"
           }
         ]
       }
