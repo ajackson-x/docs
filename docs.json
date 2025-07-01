@@ -4,7 +4,7 @@
   "name": "Signable API",
   "colors": {
     "primary": "#0095E6",
-    "light": "#07C983",
+    "light": "#0095E6",
     "dark": "#15803D"
   },
   "favicon": "/favicon.png",
