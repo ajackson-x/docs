@@ -34,7 +34,7 @@ x-tagsGroups:
 webhooks:
   send-envelope:
     post:
-      summary: Notification when an envelope is successfully sent
+      summary: Envelope sent
       description: >
         This webhook is triggered after an envelope has been successfully processed and sent.
         It delivers information about the envelope, the recipient, any additional metadata,
