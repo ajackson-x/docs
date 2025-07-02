@@ -40,6 +40,8 @@ webhooks:
         It delivers information about the envelope, the recipient, any additional metadata,
         and a download URL. Payload is sent as application/x-www-form-urlencoded.
       operationId: receiveSendEnvelopeWebhook
+      tags:
+        - Webhooks
       requestBody:
         required: true
         content:
@@ -135,6 +137,9 @@ paths:
       description: >
         Update your account's branding settings. This includes the logo and the primary colour used on emails and signing pages.
       operationId: updateBranding
+      tags:
+        - Branding
+      
       requestBody:
         required: true
         content:
