@@ -1216,7 +1216,7 @@ components:
     BrandingEmailPutPlainContentRequestExample:
       summary: Update plain content only
       value:
-        branding_email_content: "A test document previously sent to you has been cancelled\r\n\r\n{company name} has cancelled the {contract title} document.\r\n\r\nKind regards,\r\nSignable\r\n\r\nhttps://www.signable.co.uk"
+        branding_email_content_plain: "A test document previously sent to you has been cancelled\r\n\r\n{company name} has cancelled the {contract title} document.\r\n\r\nKind regards,\r\nSignable\r\n\r\nhttps://www.signable.co.uk"
 
     BrandingEmailsResponseExample:
       summary: Example branding emails response
