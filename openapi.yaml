@@ -608,12 +608,25 @@ components:
 
     BrandingEmailPutRequest:
       type: object
+      description: One-property-only request to update a single branding email attribute.
       properties:
         branding_email_subject:
           type: string
-          description: The new subject line for the email
+          description: The subject line for the email
           example: "{company name} has cancelled a test document"
+        branding_email_content:
+          type: string
+          description: The HTML content of the email
+          example: "<body style='font-family:Arial;'>...</body>"
+        branding_email_content_plain:
+          type: string
+          description: The plain text content of the email
+          example: "Your document from {company name} has been cancelled."
       additionalProperties: false
+      oneOf:
+        - required: [branding_email_subject]
+        - required: [branding_email_content]
+        - required: [branding_email_content_plain]
 
     BrandingEmailPutResponse:
       type: object
@@ -1216,7 +1229,7 @@ components:
     BrandingEmailPutPlainContentRequestExample:
       summary: Update plain content only
       value:
-        branding_email_content_plain: "A test document previously sent to you has been cancelled\r\n\r\n{company name} has cancelled the {contract title} document.\r\n\r\nKind regards,\r\nSignable\r\n\r\nhttps://www.signable.co.uk"
+        branding_email_content: "A test document previously sent to you has been cancelled\r\n\r\n{company name} has cancelled the {contract title} document.\r\n\r\nKind regards,\r\nSignable\r\n\r\nhttps://www.signable.co.uk"
 
     BrandingEmailsResponseExample:
       summary: Example branding emails response
