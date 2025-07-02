@@ -140,7 +140,7 @@ paths:
                   $ref: '#/components/examples/BrandingResponseExample'
 
     put:
-      summary: Update branding preferences
+      summary: Update branding settings
       description: >
         Update your account's branding settings. This includes the logo and the 
         primary colour used on emails and signing pages.
@@ -170,7 +170,7 @@ paths:
 
   /branding/emails:
     get:
-      summary: Get all branding email templates
+      summary: List branding emails
       operationId: getBrandingEmails
       tags:
         - Branding
@@ -185,21 +185,72 @@ paths:
                 success:
                   $ref: '#/components/examples/BrandingEmailsResponseExample'
 
+  /branding/emails/{branding_email_type}:
+    put:
+      summary: Update a branding email
+      operationId: updateBrandingEmail
+      tags:
+        - Branding
+      parameters:
+        - name: branding_email_type
+          in: path
+          required: true
+          description: The type of branding email to update
+          schema:
+            type: string
+            enum:
+              - email-cancelled
+              - email-rejected
+              - email-reminder
+              - email-reminder-password
+              - email-send
+              - email-send-password
+              - email-signed
+              - email-widget-verify
+            example: email-cancelled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BrandingEmailPutRequest'
+            examples:
+              updateSubject:
+                $ref: '#/components/examples/BrandingEmailPutSubjectRequestExample'
+              updateContent:
+                $ref: '#/components/examples/BrandingEmailPutContentRequestExample'
+              updatePlainContent:
+                $ref: '#/components/examples/BrandingEmailPutPlainContentRequestExample'
+      responses:
+        '200':
+          description: Branding email successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandingEmailPutResponse'
+              examples:
+                updateSubject:
+                  $ref: '#/components/examples/BrandingEmailPutSubjectResponseExample'
+                updatedContent:
+                  $ref: '#/components/examples/BrandingEmailPutContentResponseExample'
+                updatedPlainContent:
+                  $ref: '#/components/examples/BrandingEmailPutPlainContentResponseExample'
+
   /settings:
     get:
       summary: Get company settings
       description: >
         Your Signable account settings control how documents are delivered, signed, 
-        and managed across your team.<br>
-        <br>
+        and managed across your team.
+        
         This section of the API lets you retrieve and update your company's signing 
         preferences, email notification 
         rules, signature formats, and more—giving you full control over how your 
-        documents behave.<br>
-        <br>
+        documents behave.
+        
         Settings can be accessed via the API or in the Signable web app under 
-        Company Settings > [Preferences](https://signable.app/company-settings/preferences).<br>
-        <br>
+        Company Settings > [Preferences](https://signable.app/company-settings/preferences).
+        
       operationId: listSettings
       tags:
         - Settings
@@ -244,7 +295,7 @@ paths:
 
   /webhooks:
     get:
-      summary: Get all registered webhooks
+      summary: List webhooks
       description: >
         Retrieves a paginated list of all webhooks currently registered to receive 
         event notifications.
@@ -282,7 +333,7 @@ paths:
                   $ref: '#/components/examples/WebhookListResponseExample'
                   
     post:
-      summary: Create a new webhook
+      summary: Create a webhook
       description: >
         Registers a new webhook that will be triggered when a specific event occurs.
         You must provide a valid `webhook_url` and a supported `webhook_type`. 
@@ -321,7 +372,7 @@ paths:
 
   /webhooks/{webhook_id}:
     get:
-      summary: Get a single webhook
+      summary: Get a webhook
       description: >
         Retrieves details of a specific webhook by its unique `webhook_id`. 
         The response includes the current status and metadata of the webhook.
@@ -350,7 +401,7 @@ paths:
                   $ref: '#/components/examples/WebhookGetResponseExample'
 
     put:
-      summary: Update an existing webhook
+      summary: Update a webhook
       description: >
         Updates the webhook identified by `webhook_id`. You may change 
         the`webhook_url` and/or the `webhook_type`.
@@ -555,6 +606,57 @@ components:
           description: Last updated timestamp (ISO 8601)
           example: "2025-07-01T08:40:38+0000"
 
+    BrandingEmailPutRequest:
+      type: object
+      properties:
+        branding_email_subject:
+          type: string
+          description: The new subject line for the email
+          example: "{company name} has cancelled a test document"
+      additionalProperties: false
+
+    BrandingEmailPutResponse:
+      type: object
+      required:
+        - http
+        - message
+        - branding_email_type
+        - branding_email_subject
+        - branding_email_content
+        - branding_email_content_plain
+        - branding_email_updated
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: email-cancelled email has been updated.
+        branding_email_type:
+          type: string
+          enum:
+            - email-cancelled
+            - email-rejected
+            - email-reminder
+            - email-reminder-password
+            - email-send
+            - email-send-password
+            - email-signed
+            - email-widget-verify
+        branding_email_subject:
+          type: string
+          example: "{company name} has cancelled a test document"
+        branding_email_content:
+          type: string
+          description: HTML version of the updated email
+        branding_email_content_plain:
+          type: string
+          description: Plain text version of the updated email
+        branding_email_updated:
+          type: string
+          format: date-time
+          example: "2025-07-02T11:44:32+0000"
+
     SettingsFields:
       type: object
       description: Common company settings shared across settings GET and PUT 
@@ -618,8 +720,7 @@ components:
         setting_signing_consumer_regulations_act:
           type: boolean
           description: >
-            Enables [Consumer Contract Regulations 2013 compliance 
-            (http://www.legislation.gov.uk/uksi/2013/3134/pdfs/uksi_20133134_en.pdf) 
+            Enables [Consumer Contract Regulations 2013 compliance](http://www.legislation.gov.uk/uksi/2013/3134/pdfs/uksi_20133134_en.pdf) 
             for your account. Only set this to 'Yes' if you believe that you need 
             this enabled. 
             This setting will change some of the terminology on the signing page to 
@@ -1073,6 +1174,50 @@ components:
         branding_logo: https://assets.signable.co.uk/company-logo/213690-1751360856.png
         branding_colour: "#558CAA"
 
+    BrandingEmailPutSubjectRequestExample:
+      summary: Update subject line only
+      value:
+        branding_email_subject: "{company name} has cancelled a test document"
+
+    BrandingEmailPutContentRequestExample:
+      summary: Update HTML content only
+      value:
+        branding_email_content: |
+          <body style="font-family:Arial,Helvetica,serif;">
+          <table style="background:#FFF;font-family:Arial,Helvetica,sans-serif;border-collpase:collapse;width:600px;margin:0 auto;">
+              <tr>
+                  <td>
+                      <table style="border-collpase:collapse">
+                          <tr>
+                              <td style="padding:15px 10px 10px">
+                                  <a href="https://www.signable.co.uk" style="font-size:25px;color:#FFF;letter-spacing:-1px;font-weight:normal">
+                                      <img src="{company logo}" alt="{company name}" style="border:0;" />
+                                  </a>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td style="padding-top:10px">
+                                  <h1 style="font-size:15px;font-weight:normal;color:#444">A document previously sent to you has been cancelled</h1>
+                                  <p style="font-size:13px;color:#444;line-height:18px;padding-top:10px">
+                                    <span style="font-weight:bold;">{company name}</span> has cancelled the <span style="font-weight:bold;">{contract title}</span> document.
+                                  </p>
+                                  <p style="font-size:15px;color:#555;margin-top:30px">
+                                    Kind regards, <a href="https://www.signable.co.uk" style="color:#555;">Signable</a>
+                                  </p>
+                                  <hr style="background:#FFF;color:#FFF;border:none;height:0;border-bottom:1px dotted #CCC;" />
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+          </table>
+          </body>
+
+    BrandingEmailPutPlainContentRequestExample:
+      summary: Update plain content only
+      value:
+        branding_email_content: "A test document previously sent to you has been cancelled\r\n\r\n{company name} has cancelled the {contract title} document.\r\n\r\nKind regards,\r\nSignable\r\n\r\nhttps://www.signable.co.uk"
+
     BrandingEmailsResponseExample:
       summary: Example branding emails response
       value:
@@ -1157,6 +1302,148 @@ components:
             branding_email_content: "<body>...</body>"
             branding_email_content_plain: "Please verify your email address to complete signing of {contract title}..."
             branding_email_updated: "2025-07-01T08:40:38+0000"
+
+    BrandingEmailPutSubjectResponseExample:
+      summary: Updated branding email response
+      value:
+        http: 200
+        message: "email-cancelled email has been updated."
+        branding_email_type: email-cancelled
+        branding_email_subject: "{company name} has cancelled a test document"
+        branding_email_content: |
+          <body style="font-family:Arial,Helvetica,sans-serif;">
+          <table style="background:#FFF;font-family:Arial,Helvetica,sans-serif;border-collpase:collapse;width:600px;margin:0 auto;">
+              <tr>
+                  <td>
+                    <table style="border-collpase:collapse">
+                        <tr>
+                            <td style="padding:15px 10px 10px">
+                                <a href="https://www.signable.co.uk">
+                                    <img src="{company logo}" alt="{company name}" />
+                                </a>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding-top:10px">
+                                <h1 style="font-size:15px;color:#444;">A document previously sent to you has been cancelled</h1>
+                                <p style="font-size:13px;color:#444;line-height:18px;padding-top:10px">
+                                    <strong>{company name}</strong> has cancelled the <strong>{contract title}</strong> document.
+                                </p>
+                                <p style="font-size:15px;color:#555;margin-top:30px">Kind regards, <a href="https://www.signable.co.uk" style="color:#555;">Signable</a></p>
+                                <hr style="background:#FFF;color:#FFF;border:none;height:0;border-bottom:1px dotted #CCC;" />
+                            </td>
+                        </tr>
+                    </table>
+                  </td>
+              </tr>
+          </table>
+          </body>
+        branding_email_content_plain: |
+          A document previously sent to you has been cancelled
+
+          {company name} has cancelled the {contract title} document.
+
+          Kind regards,
+          Signable
+
+          https://www.signable.co.uk
+        branding_email_updated: "2025-07-02T11:44:32+0000"
+
+    BrandingEmailPutContentResponseExample:
+      summary: Updated branding email content response
+      value:
+        http: 200
+        message: "email-cancelled email has been updated."
+        branding_email_type: email-cancelled
+        branding_email_subject: "{company name} has cancelled a test document"
+        branding_email_content: |
+          <body style="font-family:Arial,Helvetica,serif;">
+          <table style="background:#FFF;font-family:Arial,Helvetica,sans-serif;border-collpase:collapse;width:600px;margin:0 auto;">
+              <tr>
+                  <td>
+                      <table style="border-collpase:collapse">
+                          <tr>
+                              <td style="padding:15px 10px 10px">
+                                  <a href="https://www.signable.co.uk" style="font-size:25px;color:#FFF;letter-spacing:-1px;font-weight:normal">
+                                      <img src="{company logo}" alt="{company name}" style="border:0;" />
+                                  </a>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td style="padding-top:10px">
+                                  <h1 style="font-size:15px;font-weight:normal;color:#444">A document previously sent to you has been cancelled</h1>
+                                  <p style="font-size:13px;color:#444;line-height:18px;padding-top:10px">
+                                    <span style="font-weight:bold;">{company name}</span> has cancelled the <span style="font-weight:bold;">{contract title}</span> document.
+                                  </p>
+                                  <p style="font-size:15px;color:#555;margin-top:30px">
+                                    Kind regards, <a href="https://www.signable.co.uk" style="color:#555;">Signable</a>
+                                  </p>
+                                  <hr style="background:#FFF;color:#FFF;border:none;height:0;border-bottom:1px dotted #CCC;" />
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+          </table>
+          </body>
+        branding_email_content_plain: |
+          A document previously sent to you has been cancelled
+
+          {company name} has cancelled the {contract title} document.
+
+          Kind regards,
+          Signable
+
+          https://www.signable.co.uk
+        branding_email_updated: "2025-07-02T13:29:07+0000"
+
+    BrandingEmailPutPlainContentResponseExample:
+      summary: Updated branding email plain content response
+      value:
+        http: 200
+        message: "email-cancelled email has been updated."
+        branding_email_type: email-cancelled
+        branding_email_subject: "{company name} has cancelled a test document"
+        branding_email_content: |
+          <body style="font-family:Arial,Helvetica,serif;">
+          <table style="background:#FFF;font-family:Arial,Helvetica,sans-serif;border-collpase:collapse;width:600px;margin:0 auto;">
+              <tr>
+                  <td>
+                      <table style="border-collpase:collapse">
+                          <tr>
+                              <td style="padding:15px 10px 10px">
+                                  <a href="https://www.signable.co.uk" style="font-size:25px;color:#FFF;letter-spacing:-1px;font-weight:normal">
+                                      <img src="{company logo}" alt="{company name}" style="border:0;" />
+                                  </a>
+                              </td>
+                          </tr>
+                          <tr>
+                              <td style="padding-top:10px">
+                                  <h1 style="font-size:15px;font-weight:normal;color:#444">A document previously sent to you has been cancelled</h1>
+                                  <p style="font-size:13px;color:#444;line-height:18px;padding-top:10px">
+                                      <span style="font-weight:bold;">{company name}</span> has cancelled the <span style="font-weight:bold;">{contract title}</span> document.
+                                  </p>
+                                  <p style="font-size:15px;color:#555;margin-top:30px">
+                                      Kind regards, <a href="https://www.signable.co.uk" style="color:#555;" title="Come and visit us">Signable</a>
+                                  </p>
+                                  <hr style="background:#FFF;color:#FFF;border:none;height:0;border-bottom:1px dotted #CCC;" />
+                              </td>
+                          </tr>
+                      </table>
+                  </td>
+              </tr>
+          </table>
+          </body>
+        branding_email_content_plain: |
+          A test document previously sent to you has been cancelled
+
+          {company name} has cancelled the {contract title} document.
+
+          Kind regards,
+          Signable
+
+          https://www.signable.co.uk
+        branding_email_updated: "2025-07-02T13:40:25+0000"
 
     SettingsResponseExample:
       summary: Example company settings response
