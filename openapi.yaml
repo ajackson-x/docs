@@ -57,7 +57,7 @@ webhooks:
                 envelope_documents:
                   type: string
                   description: A JSON string representing the documents within the 
-                  envelope
+                    envelope
                 envelope_download:
                   type: string
                   format: uri
@@ -72,7 +72,7 @@ webhooks:
                   type: string
                   format: email
                   description: The email address of the contact the envelope was 
-                  sent to
+                    sent to
                 action:
                   type: string
                   enum: [send-envelope]
@@ -85,7 +85,7 @@ webhooks:
                 envelope_meta:
                   type: string
                   description: A JSON string of any meta information added when 
-                  sending the envelope
+                    sending the envelope
                 envelope_signing_embed:
                   type: string
                   description: An iframe URL for embedded signing, if enabled
