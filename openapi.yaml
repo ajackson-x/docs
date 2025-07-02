@@ -188,6 +188,9 @@ paths:
   /branding/emails/{branding_email_type}:
     put:
       summary: Update a branding email
+      description: >
+        <Tip>You can include variables like `{company name}` and `{contract title}` 
+        in your email body to personalise content. [See the full list of supported variables →](/email-variables.mdx)</Tip>
       operationId: updateBrandingEmail
       tags:
         - Branding

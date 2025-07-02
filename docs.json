@@ -17,13 +17,14 @@
             "group": "Get Started",
             "pages": [
               "index",
-              "quickstart"
+              "concepts"
             ]
           },
           {
             "group": "Possibilities",
             "pages": [
-              "webhooks"
+              "webhooks",
+              "email-variables"
             ]
           }
         ]
