@@ -156,7 +156,7 @@ paths:
               $ref: '#/components/schemas/BrandingPutRequest'
             examples:
                 default:
-                  $ref: '#/components/examples/BrandingPutRequest'
+                  $ref: '#/components/examples/BrandingPutRequestExample'
       responses:
         '200':
           description: Branding updated successfully
@@ -166,7 +166,24 @@ paths:
                 $ref: '#/components/schemas/BrandingPutResponse'
               examples:
                 default:
-                  $ref: '#/components/examples/BrandingPutResponse'
+                  $ref: '#/components/examples/BrandingPutResponseExample'
+
+  /branding/emails:
+    get:
+      summary: Get all branding email templates
+      operationId: getBrandingEmails
+      tags:
+        - Branding
+      responses:
+        '200':
+          description: A list of branding email templates
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BrandingEmailsResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/BrandingEmailsResponseExample'
 
   /settings:
     get:
@@ -483,6 +500,60 @@ components:
             The hex code now being used for branding emails and signing pages. Will
             be `null` if none is set.
           example: "#558CAA"
+
+    BrandingEmailsResponse:
+      type: object
+      required:
+        - http
+        - branding_emails
+      properties:
+        http:
+          type: integer
+          example: 200
+        branding_emails:
+          type: array
+          items:
+            $ref: '#/components/schemas/BrandingEmail'
+
+    BrandingEmail:
+      type: object
+      required:
+        - branding_email_type
+        - branding_email_subject
+        - branding_email_content
+        - branding_email_content_plain
+        - branding_email_updated
+      properties:
+        branding_email_type:
+          type: string
+          description: Type of the branding email template
+          enum:
+            - email-cancelled
+            - email-rejected
+            - email-reminder
+            - email-reminder-password
+            - email-send
+            - email-send-password
+            - email-signed
+            - email-widget-verify
+          example: email-cancelled
+        branding_email_subject:
+          type: string
+          description: Subject line with variables
+          example: "{company name} has cancelled a document"
+        branding_email_content:
+          type: string
+          description: HTML version of the email template
+          example: "<body style=...>...</body>"
+        branding_email_content_plain:
+          type: string
+          description: Plain text version of the email
+          example: "{company name} has cancelled the {contract title} document."
+        branding_email_updated:
+          type: string
+          format: date-time
+          description: Last updated timestamp (ISO 8601)
+          example: "2025-07-01T08:40:38+0000"
 
     SettingsFields:
       type: object
@@ -988,19 +1059,104 @@ components:
         branding_logo: https://www.signable.co.uk/signable.png
         branding_colour: "#0095E6"
 
-    BrandingPutRequest:
+    BrandingPutRequestExample:
       summary: Example branding update request
       value:
         branding_logo_url: https://upload.wikimedia.org/wikipedia/commons/7/70/Example.png
         branding_colour: "#558caa"
 
-    BrandingPutResponse:
+    BrandingPutResponseExample:
       summary: Branding successfully updated
       value:
         http: 200
         message: Branding options have been updated.
         branding_logo: https://assets.signable.co.uk/company-logo/213690-1751360856.png
         branding_colour: "#558CAA"
+
+    BrandingEmailsResponseExample:
+      summary: Example branding emails response
+      value:
+        http: 200
+        branding_emails:
+          - branding_email_type: email-cancelled
+            branding_email_subject: "{company name} has cancelled a document"
+            branding_email_content: |
+              <body style="font-family:Arial,Helvetica,sans-serif;">
+              <table style="background:#FFF;font-family:Arial,Helvetica,sans-serif;border-collpase:collapse;width:600px;margin:0 auto;">
+                <tr>
+                  <td>
+                    <table style="border-collpase:collapse">
+                      <tr>
+                        <td style="padding:15px 10px 10px">
+                          <a href="https://www.signable.co.uk">
+                            <img src="{company logo}" alt="{company name}" />
+                          </a>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding-top:10px">
+                          <h1 style="font-size:15px;">A document previously sent to you has been cancelled</h1>
+                          <p><strong>{company name}</strong> has cancelled the <strong>{contract title}</strong> document.</p>
+                          <p>Kind regards, <a href="https://www.signable.co.uk">Signable</a></p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+              </body>
+            branding_email_content_plain: |
+              A document previously sent to you has been cancelled
+
+              {company name} has cancelled the {contract title} document.
+
+              Kind regards,
+              Signable
+
+              https://www.signable.co.uk
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-rejected
+            branding_email_subject: "{contract title} document rejected"
+            branding_email_content: "<html>...</html>"
+            branding_email_content_plain: "A document you signed has been rejected..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-reminder
+            branding_email_subject: "{company name} has sent you a document to sign"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "{company name} has sent you the document {contract title} to sign online..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-reminder-password
+            branding_email_subject: "{company name} has sent you a document to sign"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "{company name} has also requested this document be password protected..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-send
+            branding_email_subject: "{company name} has sent you a document to sign"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "{client name}, you have been sent a document to sign..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-send-password
+            branding_email_subject: "{company name} has sent you a document to sign"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "{client name}, you've been sent a secure document..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-signed
+            branding_email_subject: "Document signed confirmation"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "You have successfully signed {contract title}..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
+
+          - branding_email_type: email-widget-verify
+            branding_email_subject: "Verify your signed document with {company name}"
+            branding_email_content: "<body>...</body>"
+            branding_email_content_plain: "Please verify your email address to complete signing of {contract title}..."
+            branding_email_updated: "2025-07-01T08:40:38+0000"
 
     SettingsResponseExample:
       summary: Example company settings response
