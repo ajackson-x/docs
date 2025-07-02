@@ -32,6 +32,15 @@
         "tab": "API Reference",
         "groups": [
           {
+            "group": "Using the API",
+            "pages": [
+              "overview",
+              "authentication",
+              "testing",
+              "errors"
+            ]
+          },
+          {
             "group": "API Documentation",
             "openapi": "openapi.yaml"
           }
