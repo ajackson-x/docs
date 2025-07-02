@@ -2,11 +2,11 @@ openapi: 3.1.0 #wishful thinking that our spec is 3.1 at the moment
 
 info:
   title: Signable API  
-  description: The Signable API provides secure and efficient access to Signable's electronic 
-    signature platform. With this RESTful API, you can send documents for signature, 
-    manage templates, track envelope status, and automate your document workflows 
-    from within your own applications. Please see https://developer.signable.co.uk/ 
-    for more details.  
+  description: The Signable API provides secure and efficient access to Signable's
+    electronic signature platform. With this RESTful API, you can send documents for 
+    signature, manage templates, track envelope status, and automate your document 
+    workflows from within your own applications. Please see 
+    https://developer.signable.co.uk/ for more details.
   version: 1.0.0  
   contact:
     name: Signable
@@ -36,8 +36,10 @@ webhooks:
     post:
       summary: Envelope sent
       description: >
-        This webhook is triggered after an envelope has been successfully processed and sent.
-        It delivers information about the envelope, the recipient, any additional metadata,
+        This webhook is triggered after an envelope has been successfully processed 
+        and sent.
+        It delivers information about the envelope, the recipient, any additional 
+        metadata,
         and a download URL. Payload is sent as application/x-www-form-urlencoded.
       operationId: receiveSendEnvelopeWebhook
       tags:
@@ -54,7 +56,8 @@ webhooks:
                   description: A string representing the envelope that was sent
                 envelope_documents:
                   type: string
-                  description: A JSON string representing the documents within the envelope
+                  description: A JSON string representing the documents within the 
+                  envelope
                 envelope_download:
                   type: string
                   format: uri
@@ -68,7 +71,8 @@ webhooks:
                 contact_email:
                   type: string
                   format: email
-                  description: The email address of the contact the envelope was sent to
+                  description: The email address of the contact the envelope was 
+                  sent to
                 action:
                   type: string
                   enum: [send-envelope]
@@ -80,7 +84,8 @@ webhooks:
                   description: The UTC timestamp of when the action occurred
                 envelope_meta:
                   type: string
-                  description: A JSON string of any meta information added when sending the envelope
+                  description: A JSON string of any meta information added when 
+                  sending the envelope
                 envelope_signing_embed:
                   type: string
                   description: An iframe URL for embedded signing, if enabled
@@ -115,8 +120,10 @@ paths:
     get:
       summary: Get branding settings
       description: >
-        Returns your company's current branding settings, including any uploaded logo and primary colour.
-        These settings control how Signable emails and signing pages appear to your signers.
+        Returns your company's current branding settings, including any uploaded 
+        logo and primary colour.
+        These settings control how Signable emails and signing pages appear to your 
+        signers.
       operationId: getBranding
       tags:
         - Branding
@@ -135,7 +142,8 @@ paths:
     put:
       summary: Update branding preferences
       description: >
-        Update your account's branding settings. This includes the logo and the primary colour used on emails and signing pages.
+        Update your account's branding settings. This includes the logo and the 
+        primary colour used on emails and signing pages.
       operationId: updateBranding
       tags:
         - Branding
@@ -164,10 +172,13 @@ paths:
     get:
       summary: Get company settings
       description: >
-        Your Signable account settings control how documents are delivered, signed, and managed across your team.<br>
+        Your Signable account settings control how documents are delivered, signed, 
+        and managed across your team.<br>
         <br>
-        This section of the API lets you retrieve and update your company's signing preferences, email notification 
-        rules, signature formats, and more—giving you full control over how your documents behave.<br>
+        This section of the API lets you retrieve and update your company's signing 
+        preferences, email notification 
+        rules, signature formats, and more—giving you full control over how your 
+        documents behave.<br>
         <br>
         Settings can be accessed via the API or in the Signable web app under 
         Company Settings > [Preferences](https://signable.app/company-settings/preferences).<br>
@@ -218,8 +229,10 @@ paths:
     get:
       summary: Get all registered webhooks
       description: >
-        Retrieves a paginated list of all webhooks currently registered to receive event notifications.
-        Supports offset and limit for pagination. Webhooks include metadata about creation, update, and suspension state.
+        Retrieves a paginated list of all webhooks currently registered to receive 
+        event notifications.
+        Supports offset and limit for pagination. Webhooks include metadata about 
+        creation, update, and suspension state.
       operationId: listWebhooks
       tags:
         - Webhooks
@@ -256,7 +269,8 @@ paths:
       description: >
         Registers a new webhook that will be triggered when a specific event occurs.
         You must provide a valid `webhook_url` and a supported `webhook_type`. 
-        The created webhook will immediately be eligible to receive matching notifications.
+        The created webhook will immediately be eligible to receive matching 
+        notifications.
       operationId: createWebhook
       tags:
         - Webhooks
@@ -321,7 +335,8 @@ paths:
     put:
       summary: Update an existing webhook
       description: >
-        Updates the webhook identified by `webhook_id`. You may change the `webhook_url` and/or the `webhook_type`.
+        Updates the webhook identified by `webhook_id`. You may change 
+        the`webhook_url` and/or the `webhook_type`.
       operationId: updateWebhook
       tags:
         - Webhooks
@@ -359,7 +374,8 @@ paths:
     delete:
       summary: Delete a webhook
       description: >
-        Deletes the webhook identified by `webhook_id`. Once removed, the webhook will no longer receive event notifications.
+        Deletes the webhook identified by `webhook_id`. Once removed, the webhook 
+        will no longer receive event notifications.
       operationId: deleteWebhook
       tags:
         - Webhooks
@@ -419,7 +435,8 @@ components:
           type: [string, "null"]
           format: uri
           description: >
-            A public URL to your logo. This will be shown on emails and the signing page.
+            A public URL to your logo. This will be shown on emails and the signing 
+            page.
             Set to `null` to remove the current logo.
           example: https://upload.wikimedia.org/wikipedia/commons/7/70/Example.png
 
@@ -427,7 +444,8 @@ components:
           type: string
           pattern: '^#[0-9A-Fa-f]{6}$'
           description: >
-            The hex colour code (e.g. `#0095E6`) used for branded emails and signing pages.
+            The hex colour code (e.g. `#0095E6`) used for branded emails and signing 
+            pages.
           example: "#558caa"
       required:
         - branding_logo_url
@@ -455,97 +473,117 @@ components:
           type: [string, "null"]
           format: uri
           description: >
-            The final logo URL now active for your account. Will be `null` if none is set.
+            The final logo URL now active for your account. Will be `null` if none
+            is set.
           example: https://assets.signable.co.uk/company-logo/213690-1751360856.png
 
         branding_colour:
           type: string
           description: >
-            The hex code now being used for branding emails and signing pages. Will be `null` if none is set.
+            The hex code now being used for branding emails and signing pages. Will
+            be `null` if none is set.
           example: "#558CAA"
 
     SettingsFields:
       type: object
-      description: Common company settings shared across settings GET and PUT operations.
+      description: Common company settings shared across settings GET and PUT 
+        operations.
       properties:
         setting_signature_more_info:
           type: boolean
           description: >
-            If enabled, the signature will display the signer name and timestamp under each signature block on the generated Envelope PDF.
+            If enabled, the signature will display the signer name and timestamp 
+            under each signature block on the generated Envelope PDF.
           example: true
 
         setting_signature_format_default:
           type: string
           description: >
-            Which signature format is offered by default. Accepted values: `drawn`, `typed`, or `upload`.
+            Which signature format is offered by default. Accepted values: `drawn`, 
+            `typed`, or `upload`.
           example: typed
 
         setting_signature_format_accepted:
           type: string
           description: >
-            Comma-separated list of signature formats your account accepts. Valid values: `drawn`, `typed`, `upload`.
+            Comma-separated list of signature formats your account accepts. Valid 
+            values: `drawn`, `typed`, `upload`.
           example: typed,drawn,upload
 
         setting_email_pdf_attach:
           type: boolean
           description: >
-            If enabled, the document to be signed will be attached as a PDF in emails. 
-            If disabled, no PDF will be attached. Recipients can still view the document via a link in the email.
+            If enabled, the document to be signed will be attached as a PDF in 
+            emails. 
+            If disabled, no PDF will be attached. Recipients can still view the 
+            document via a link in the email.
           example: true
 
         setting_email_envelope_open:
           type: boolean
           description: >
-            If enabled, an email notification will be sent when someone opens the envelope.
+            If enabled, an email notification will be sent when someone opens the 
+            envelope.
           example: true
 
         setting_email_main_email:
           type: boolean
           description: >
-            If enabled, notifications (signed, rejected, cancelled) are sent to your company’s main email address.
+            If enabled, notifications (signed, rejected, cancelled) are sent to your 
+            company’s main email address.
           example: true
 
         setting_email_return_address_user:
           type: boolean
           description: >
-            If enabled, the "Return Email" will be set to the user who sent the envelope, rather than the main company email.
-            If disabled, the "Return Email" will be set to your main company email address.
-            Regardless of this property, emails will always be sent from document@signable.co.uk.
+            If enabled, the "Return Email" will be set to the user who sent the 
+            envelope, rather than the main company email.
+            If disabled, the "Return Email" will be set to your main company email 
+            address.
+            Regardless of this property, emails will always be sent from 
+            document@signable.co.uk.
           example: true
 
         setting_signing_consumer_regulations_act:
           type: boolean
           description: >
-            Enables [Consumer Contract Regulations 2013 compliance](http://www.legislation.gov.uk/uksi/2013/3134/pdfs/uksi_20133134_en.pdf) 
-            for your account. Only set this to 'Yes' if you believe that you need this enabled. 
-            This setting will change some of the terminology on the signing page to become 
-            compliant with this Act.
+            Enables [Consumer Contract Regulations 2013 compliance 
+            (http://www.legislation.gov.uk/uksi/2013/3134/pdfs/uksi_20133134_en.pdf) 
+            for your account. Only set this to 'Yes' if you believe that you need 
+            this enabled. 
+            This setting will change some of the terminology on the signing page to 
+            become compliant with this Act.
           example: false
 
         setting_signing_tooltips:
           type: boolean
           deprecated: true
           description: >
-            If enabled, tooltip hints will be shown when a signer attempts to sign a document.
+            If enabled, tooltip hints will be shown when a signer attempts to sign a
+            document.
           example: false
 
         setting_signing_questions:
           type: boolean
           description: >
-            If enabled, signers can send you questions or comments directly from the signing page.
+            If enabled, signers can send you questions or comments directly from the
+            signing page.
           example: true
 
         setting_pdf_audit_trail_hide:
           type: boolean
           description: >
-            If enabled, all party email addresses and mobile numbers will be hidden on the signing page and PDF certificate audit trail.
+            If enabled, all party email addresses and mobile numbers will be hidden 
+            on the signing page and PDF certificate audit trail.
           example: true
 
         setting_all_at_once_default:
           type: boolean
           description: >
-            If enabled, envelopes are sent to all parties simultaneously by default (all-at-once signing).
-            If disabled, envelopes are sent to the first party only (one-at-a-time signing).
+            If enabled, envelopes are sent to all parties simultaneously by default 
+            (all-at-once signing).
+            If disabled, envelopes are sent to the first party only (one-at-a-time 
+            signing).
             Default is `true`.
           example: true
 
@@ -599,10 +637,11 @@ components:
           type: string
           description: >
             The event type to subscribe to. Valid values include:
-            `send-envelope`, `signed-envelope`, `cancelled-envelope`, `rejected-envelope`, `bounced-envelope`, 
-            `add-user`, `add-contact`, `opened-envelope`, `add-template`, `all`, 
-            `signed-envelope-complete`, `verify-envelope-widget`, `signed-envelope-widget`, 
-            and `send-envelope-failed`.
+            `send-envelope`, `signed-envelope`, `cancelled-envelope`, 
+            `rejected-envelope`, `bounced-envelope`, `add-user`, `add-contact`, 
+            `opened-envelope`, `add-template`, `all`, 
+            `signed-envelope-complete`, `verify-envelope-widget`, 
+            `signed-envelope-widget`, and `send-envelope-failed`.
           enum:
             - send-envelope
             - signed-envelope
@@ -907,7 +946,8 @@ components:
         message:
           type: string
           description: Descriptive message confirming the webhook was removed
-          example: The webhook (https://andy-example.com) has been removed from your account.
+          example: The webhook (https://andy-example.com) has been removed from your 
+            account.
 
         webhook_id:
           type: integer
@@ -1087,7 +1127,8 @@ components:
       summary: Example response after deleting a webhook
       value:
         http: 200
-        message: The webhook (https://andy-example.com) has been removed from your account.
+        message: The webhook (https://andy-example.com) has been removed from your 
+          account.
         webhook_id: 152691
         webhook_url: https://andy-example.com
         webhook_type: all
@@ -1098,4 +1139,5 @@ components:
       scheme: basic
       description: >
         Authenticate using HTTP Basic Authentication.
-        Use your API key as the username and the password can be anything. For ease of use we recommend "x".
+        Use your API key as the username and the password can be anything. For ease 
+        of use we recommend "x".
