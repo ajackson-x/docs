@@ -21,6 +21,9 @@ servers:
 security:
   - basicAuth: []
 x-tagsGroups:
+  - name: Contacts
+    tags:
+      - Contacts
   - name: Users
     tags:
       - Users
@@ -119,6 +122,138 @@ webhooks:
   # need to add all the other webhooks
 
 paths:
+  /contacts:
+    get:
+      summary: List contacts
+      description: >
+        Retrieves a paginated list of all contacts. Use `offset` and `limit` query parameters
+        to control pagination.
+      operationId: listContacts
+      tags:
+        - Contacts
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Contact list returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactsListResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactsListResponseExample'
+
+    post:
+      summary: Create a contact
+      description: Adds a new contact to your contact list.
+      operationId: createContact
+      tags:
+        - Contacts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactCreateRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/ContactCreateRequestExample'
+      responses:
+        "200":
+          description: Contact created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactCreateResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactCreateResponseExample'
+
+  /contacts/{contact_id}:
+    get:
+      summary: Get a contact
+      description: Retrieves details of a single contact by `contact_id`.
+      operationId: getContact
+      tags:
+        - Contacts
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          description: The unique ID of the contact
+          schema:
+            type: integer
+            example: 17224150
+      responses:
+        "200":
+          description: Contact details returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactGetResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactGetResponseExample'
+
+    put:
+      summary: Update a contact
+      description: Updates a contact's name or email address.
+      operationId: updateContact
+      tags:
+        - Contacts
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 17224150
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactUpdateRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/ContactUpdateRequestExample'
+      responses:
+        "200":
+          description: Contact updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactUpdateResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactUpdateResponseExample'
+
+    delete:
+      summary: Delete a contact
+      description: Deletes a contact by their `contact_id`.
+      operationId: deleteContact
+      tags: 
+        - Contacts
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 17224150
+      responses:
+        "200":
+          description: Contact deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactDeleteResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactDeleteResponseExample'
+
   /user:
     get:
       summary: List users
@@ -629,8 +764,177 @@ components:
           type: integer
           example: 10
           default: 10
-          
+
   schemas:
+    Contact:
+      type: object
+      properties:
+        contact_id:
+          type: string
+          example: "17224073"
+        contact_name:
+          type: string
+          example: Buffy The Vampire Slayer
+        contact_email:
+          type: string
+          format: email
+          example: buffy@sunnydale.com
+        contact_outstanding_documents:
+          type: string
+          example: "0"
+        contact_created:
+          type: string
+          format: date-time
+          example: "2025-07-07T09:54:08+0000"
+
+    ContactsListResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        offset:
+          type: integer
+          example: 0
+        limit:
+          type: integer
+          example: 50
+        total_contacts:
+          type: string
+          example: "3"
+        contacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/Contact'
+
+    ContactCreateRequest:
+      type: object
+      required:
+        - contact_name
+        - contact_email
+      properties:
+        contact_name:
+          type: string
+          example: Hanz Zimmer
+        contact_email:
+          type: string
+          format: email
+          example: hanz.zimmer@music.com
+
+    ContactCreateResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Hanz Zimmer has been added to your contact list.
+        href:
+          type: string
+          format: uri
+          example: https://api.signable.co.uk/v1/contacts/17224150
+        contact_id:
+          type: string
+          example: "17224150"
+        contact_name:
+          type: string
+          example: Hanz Zimmer
+        contact_email:
+          type: string
+          format: email
+          example: hanz.zimmer@music.com
+        contact_created:
+          type: string
+          format: date-time
+          example: "2025-07-07T09:57:39+0000"
+
+    ContactGetResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        contact_id:
+          type: integer
+          example: 17224150
+        contact_name:
+          type: string
+          example: Hanz Zimmer
+        contact_email:
+          type: string
+          format: email
+          example: hanz.zimmer@music.com
+        contact_outstanding_documents:
+          type: string
+          example: "0"
+        contact_created:
+          type: string
+          format: date-time
+          example: "2025-07-07T09:57:39+0000"
+
+    ContactUpdateRequest:
+      type: object
+      required:
+        - contact_name
+        - contact_email
+      properties:
+        contact_name:
+          type: string
+          example: Nemo
+        contact_email:
+          type: string
+          format: email
+          example: nemo@coralreef.com
+
+    ContactUpdateResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Nemo has been updated in your contact list.
+        href:
+          type: string
+          format: uri
+          example: https://api.signable.co.uk/v1/contacts/17224150
+        contact_id:
+          type: integer
+          example: 17224150
+        contact_name:
+          type: string
+          example: Nemo
+        contact_email:
+          type: string
+          format: email
+          example: nemo@coralreef.com
+        contact_updated:
+          type: string
+          format: date-time
+          example: "2025-07-07T09:59:25+0000"
+
+    ContactDeleteResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Nemo has been removed from your contact list.
+        contact_id:
+          type: integer
+          example: 17224150
+        contact_name:
+          type: string
+          example: Nemo
+        contact_email:
+          type: string
+          format: email
+          example: nemo@coralreef.com
+
     UsersListResponse:
       type: object
       properties:
@@ -1552,6 +1856,83 @@ components:
           example: all
 
   examples:
+    ContactsListResponseExample:
+    summary: Paginated list of contacts
+    value:
+      http: 200
+      offset: 0
+      limit: 50
+      total_contacts: "3"
+      contacts:
+        - contact_id: "17224073"
+          contact_name: Buffy The Vampire Slayer
+          contact_email: buffy@sunnydale.com
+          contact_outstanding_documents: "0"
+          contact_created: "2025-07-07T09:54:08+0000"
+        - contact_id: "17224050"
+          contact_name: Jane Doe
+          contact_email: jane@example.com
+          contact_outstanding_documents: "0"
+          contact_created: "2025-07-07T09:52:54+0000"
+        - contact_id: "17224044"
+          contact_name: Jo Bloggs
+          contact_email: jo@example.com
+          contact_outstanding_documents: "0"
+          contact_created: "2025-07-07T09:52:32+0000"
+
+    ContactCreateRequestExample:
+      summary: Example create contact request
+      value:
+        contact_name: Hanz Zimmer
+        contact_email: hanz.zimmer@music.com
+
+    ContactCreateResponseExample:
+      summary: Example create contact response
+      value:
+        http: 200
+        message: Hanz Zimmer has been added to your contact list.
+        href: https://api.signable.co.uk/v1/contacts/17224150
+        contact_id: "17224150"
+        contact_name: Hanz Zimmer
+        contact_email: hanz.zimmer@music.com
+        contact_created: "2025-07-07T09:57:39+0000"
+
+    ContactGetResponseExample:
+      summary: Example get contact response
+      value:
+        http: 200
+        contact_id: 17224150
+        contact_name: Hanz Zimmer
+        contact_email: hanz.zimmer@music.com
+        contact_outstanding_documents: "0"
+        contact_created: "2025-07-07T09:57:39+0000"
+
+    ContactUpdateRequestExample:
+      summary: Example update contact request
+      value:
+        contact_name: Nemo
+        contact_email: nemo@coralreef.com
+
+    ContactUpdateResponseExample:
+      summary: Example update contact response
+      value:
+        http: 200
+        message: Nemo has been updated in your contact list.
+        href: https://api.signable.co.uk/v1/contacts/17224150
+        contact_id: 17224150
+        contact_name: Nemo
+        contact_email: nemo@coralreef.com
+        contact_updated: "2025-07-07T09:59:25+0000"
+
+    ContactDeleteResponseExample:
+      summary: Example delete contact response
+      value:
+        http: 200
+        message: Nemo has been removed from your contact list.
+        contact_id: 17224150
+        contact_name: Nemo
+        contact_email: nemo@coralreef.com
+
     UsersListResponseExample:
       summary: Paginated user list
       value:
