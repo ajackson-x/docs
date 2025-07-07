@@ -254,6 +254,36 @@ paths:
                 default:
                   $ref: '#/components/examples/ContactDeleteResponseExample'
 
+  /contacts/{contact_id}/envelopes:
+    get:
+      summary: List envelopes for a contact
+      description: >
+        Returns a paginated list of all envelopes that the contact is a recipient of. 
+        Each envelope includes basic metadata such as its current status, timestamps, and optional signed PDF link.
+      operationId: listContactEnvelopes
+      tags: 
+        - Contacts
+      parameters:
+        - name: contact_id
+          in: path
+          required: true
+          description: The unique ID of the contact
+          schema:
+            type: integer
+            example: 17225983
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: List of envelopes the contact is associated with
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactEnvelopesListResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/ContactEnvelopesListResponseExample'
+
   /user:
     get:
       summary: List users
@@ -934,6 +964,68 @@ components:
           type: string
           format: email
           example: nemo@coralreef.com
+
+    EnvelopeSummary:
+      type: object
+      properties:
+        envelope_fingerprint:
+          type: string
+          example: db9ab123d26e37ecdab6678c012d2207
+        envelope_title:
+          type: string
+          example: Another Test
+        envelope_status:
+          type: string
+          enum: [processing, sent, signed, cancelled, expired, failed, draft]
+          description: >
+            Status of the envelope:
+            - `processing`: Initial state when creating without a template
+            - `sent`: Envelope has been sent
+            - `signed`: All parties have signed
+            - `cancelled`: Cancelled by the sender
+            - `expired`: Envelope expired before signing
+            - `failed`: Processing failed
+            - `draft`: Created but not sent
+          example: draft
+        envelope_created:
+          type: string
+          format: date-time
+          example: "2025-07-07T11:30:27+0000"
+        envelope_sent:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        envelope_processed:
+          type: string
+          format: date-time
+          nullable: true
+          example: null
+        envelope_signed_pdf:
+          type: string
+          format: uri
+          nullable: true
+          example: https://api.signableapi.com/shareable/envelope?t=403cebcc-60ec-4cc2-b7d6-753fb7d5c662
+
+    ContactEnvelopesListResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        offset:
+          type: integer
+          example: 0
+        limit:
+          type: integer
+          example: 10
+        total_envelopes:
+          type: string
+          example: "3"
+        envelopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeSummary'
 
     UsersListResponse:
       type: object
@@ -1932,6 +2024,35 @@ components:
         contact_id: 17224150
         contact_name: Nemo
         contact_email: nemo@coralreef.com
+
+    ContactEnvelopesListResponseExample:
+      summary: Envelopes associated with a contact
+      value:
+        http: 200
+        offset: 0
+        limit: 10
+        total_envelopes: "3"
+        envelopes:
+          - envelope_fingerprint: db9ab123d26e37ecdab6678c012d2207
+            envelope_title: Another Test
+            envelope_status: draft
+            envelope_created: "2025-07-07T11:30:27+0000"
+            envelope_sent: null
+            envelope_processed: null
+          - envelope_fingerprint: 082fb78846cc7cd7afe3688ced12438d
+            envelope_title: 2nd Test
+            envelope_status: signed
+            envelope_created: "2025-07-07T11:27:44+0000"
+            envelope_sent: "2025-07-07T11:29:31+0000"
+            envelope_processed: "2025-07-07T11:30:09+0000"
+            envelope_signed_pdf: https://api.signableapi.com/shareable/envelope?t=403cebcc-60ec-4cc2-b7d6-753fb7d5c632
+          - envelope_fingerprint: d02114531327fa2aa1c03ad6670790b9
+            envelope_title: Test Envelope
+            envelope_status: signed
+            envelope_created: "2025-07-07T10:30:02+0000"
+            envelope_sent: "2025-07-07T11:26:20+0000"
+            envelope_processed: "2025-07-07T11:27:20+0000"
+            envelope_signed_pdf: https://api.signableapi.com/shareable/envelope?t=3dd2069d-4a61-4c9e-99c8-9dfc737eb150
 
     UsersListResponseExample:
       summary: Paginated user list
