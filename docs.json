@@ -92,5 +92,10 @@
       "facebook": "https://www.facebook.com/signablehq",
       "linkedin": "https://www.linkedin.com/company/signable/"
     }
+  },
+  "integrations": {
+    "gtm": {
+        "tagId": "GTM-K5H8RHJQ"
+    }
   }
 }
