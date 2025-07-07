@@ -261,7 +261,8 @@ paths:
         Returns a paginated list of all envelopes that the contact is a recipient of. 
         Each envelope includes basic metadata such as its current status, timestamps, and optional signed PDF link.
       operationId: listContactEnvelopes
-      tags: [Contacts]
+      tags: 
+        - Contacts
       parameters:
         - name: contact_id
           in: path
