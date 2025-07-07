@@ -21,6 +21,9 @@ servers:
 security:
   - basicAuth: []
 x-tagsGroups:
+  - name: Users
+    tags:
+      - Users
   - name: Branding
     tags:
       - Branding
@@ -116,6 +119,141 @@ webhooks:
   # need to add all the other webhooks
 
 paths:
+  /user:
+    get:
+      summary: List users
+      description: >
+        Retrieves a paginated list of all users in your account.
+        You can control pagination using the `offset` and `limit` query parameters.
+      operationId: listUsers
+      tags:
+        - Users
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        "200":
+          description: Users list returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsersListResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/UsersListResponseExample'
+
+    post:
+      summary: Create a user
+      description: >
+        Adds a new user to your account. You must provide the user’s name, email address, and their role ID.
+      operationId: createUser
+      tags:
+        - Users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCreateRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/UserCreateRequestExample'
+      responses:
+        "200":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserCreateResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/UserCreateResponseExample'
+
+  /users/{user_id}:
+    get:
+      summary: Get a user
+      description: >
+        Retrieves the details of a single user by their unique `user_id`.
+        The response includes the user's name, email, role, and timestamps.
+      operationId: getUser
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The unique ID of the user to retrieve
+          schema:
+            type: integer
+            example: 836499
+      responses:
+        "200":
+          description: User details returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserGetResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/UserGetResponseExample'
+
+    put:
+      summary: Update a user
+      description: >
+        Updates an existing user by their `user_id`. You can change their name, email address,
+        or assigned role.
+      operationId: updateUser
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The unique ID of the user to update
+          schema:
+            type: integer
+            example: 837154
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserUpdateRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/UserUpdateRequestExample'
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserUpdateResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/UserUpdateResponseExample'
+
+    delete:
+      summary: Delete a user
+      description: >
+        Removes a user from your account using their `user_id`.
+        The response confirms the deletion and includes the user's basic details.
+      operationId: deleteUser
+      tags:
+        - Users
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          description: The unique ID of the user to delete
+          schema:
+            type: integer
+            example: 837154
+      responses:
+        "200":
+          description: User deleted successfully
+
+
   /branding:
     get:
       summary: Get branding settings
@@ -473,6 +611,231 @@ paths:
 
 components:
   schemas:
+    UsersListResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        offset:
+          type: integer
+          example: 0
+        limit:
+          type: integer
+          example: 50
+        total_users:
+          type: string
+          description: Total number of users (returned as a string)
+          example: "2"
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    
+    User:
+      type: object
+      properties:
+        user_id:
+          type: string
+          example: "836499"
+        role_id:
+          type: string
+          example: "3"
+        user_name:
+          type: string
+          example: "Andy Loves Signable"
+        user_email:
+          type: string
+          format: email
+          example: "andy+010725@wearedomo.com"
+        user_added:
+          type: string
+          format: date-time
+          example: "2025-07-01T08:40:38+0000"
+        user_last_updated:
+          type: string
+          format: date-time
+          example: "2025-07-07T07:57:54+0000"
+
+    UserGetResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        user_id:
+          type: integer
+          example: 836499
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          description: |
+            Role assigned to the user:
+            - "1" = User
+            - "2" = Admin
+            - "3" = Super-Admin
+          example: "3"
+        user_name:
+          type: string
+          example: Andy Loves Signable
+        user_email:
+          type: string
+          format: email
+          example: andy+010725@wearedomo.com
+        user_added:
+          type: string
+          format: date-time
+          example: "2025-07-01T08:40:38+0000"
+        user_last_updated:
+          type: string
+          format: date-time
+          example: "2025-07-07T07:57:54+0000"
+
+    UserCreateRequest:
+      type: object
+      required:
+        - user_name
+        - user_email
+        - role_id
+      properties:
+        user_name:
+          type: string
+          example: Andy Example
+        user_email:
+          type: string
+          format: email
+          example: andy+example@wearedom.com
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          description: |
+            Role assigned to the user:
+            - "1" = User
+            - "2" = Admin
+            - "3" = Super-Admin
+          example: 2
+
+    UserCreateResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Andy Example has been added to your user list.
+        href:
+          type: string
+          format: uri
+          example: https://api.signable.co.uk/v1/users/837146
+        user_id:
+          type: string
+          example: "837146"
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          description: |
+            Role assigned to the user:
+            - "1" = User
+            - "2" = Admin
+            - "3" = Super-Admin
+        user_name:
+          type: string
+          example: Andy Example
+        user_email:
+          type: string
+          format: email
+          example: andy+example@wearedom.com
+        user_added:
+          type: string
+          format: date-time
+          example: "2025-07-07T08:06:49+0000"
+
+    UserUpdateRequest:
+      type: object
+      required:
+        - user_name
+        - user_email
+        - role_id
+      properties:
+        user_name:
+          type: string
+          example: Andy Jackson
+        user_email:
+          type: string
+          format: email
+          example: andy+jackson@wearedomo.com
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          description: |
+            Role assigned to the user:
+            - "1" = User
+            - "2" = Admin
+            - "3" = Super-Admin
+          example: "1"
+
+    UserUpdateResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Andy Jackson has been updated in your user list.
+        href:
+          type: string
+          format: uri
+          example: https://api.signable.co.uk/v1/users/837154
+        user_id:
+          type: integer
+          example: 837154
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          example: "1"
+        user_name:
+          type: string
+          example: Andy Jackson
+        user_email:
+          type: string
+          format: email
+          example: andy+jackson@wearedomo.com
+        user_updated:
+          type: string
+          format: date-time
+          example: "2025-07-07T08:38:54+0000"
+
+    UserDeleteResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          example: 200
+        message:
+          type: string
+          example: Andy Jackson has been removed from your user list.
+        user_id:
+          type: integer
+          example: 837154
+        role_id:
+          type: string
+          enum: ["1", "2", "3"]
+          description: |
+            Role previously assigned to the deleted user:
+            - "1" = User
+            - "2" = Admin
+            - "3" = Super-Admin
+          example: "1"
+        user_email:
+          type: string
+          format: email
+          example: andy+jackson@wearedomo.com
+        user_name:
+          type: string
+          example: Andy Jackson
+
     BrandingResponse:
       type: object
       required:
@@ -1169,6 +1532,86 @@ components:
           example: all
 
   examples:
+    UsersListResponseExample:
+      summary: Paginated user list
+      value:
+        http: 200
+        offset: 0
+        limit: 50
+        total_users: "2"
+        users:
+          - user_id: "836499"
+            role_id: "3"
+            user_name: "Andy Loves Signable"
+            user_email: "andy+010725@wearedomo.com"
+            user_added: "2025-07-01T08:40:38+0000"
+            user_last_updated: "2025-07-07T07:57:54+0000"
+          - user_id: "837142"
+            role_id: "1"
+            user_name: "Sandy"
+            user_email: "andy+sandy@wearedomo.com"
+            user_added: "2025-07-07T07:58:38+0000"
+            user_last_updated: "2025-07-07T07:58:44+0000"
+
+    UserGetResponseExample:
+        summary: Single user response
+        value:
+          http: 200
+          user_id: 836499
+          role_id: "3"
+          user_name: Andy Loves Signable
+          user_email: andy+010725@wearedomo.com
+          user_added: "2025-07-01T08:40:38+0000"
+          user_last_updated: "2025-07-07T07:57:54+0000"
+
+    UserCreateRequestExample:
+      summary: Example user creation request
+      value:
+        user_name: Andy Example
+        user_email: andy+example@wearedom.com
+        role_id: "2"
+
+    UserCreateResponseExample:
+      summary: Example successful user creation response
+      value:
+        http: 200
+        message: Andy Example has been added to your user list.
+        href: https://api.signable.co.uk/v1/users/837146
+        user_id: "837146"
+        role_id: "2"
+        user_name: Andy Example
+        user_email: andy+example@wearedom.com
+        user_added: "2025-07-07T08:06:49+0000"
+
+    UserUpdateRequestExample:
+      summary: Update user details
+      value:
+        user_name: Andy Jackson
+        user_email: andy+jackson@wearedomo.com
+        role_id: "1"
+
+    UserUpdateResponseExample:
+      summary: Successful user update
+      value:
+        http: 200
+        message: Andy Jackson has been updated in your user list.
+        href: https://api.signable.co.uk/v1/users/837154
+        user_id: 837154
+        role_id: "1"
+        user_name: Andy Jackson
+        user_email: andy+jackson@wearedomo.com
+        user_updated: "2025-07-07T08:38:54+0000"
+
+    UserDeleteResponseExample:
+      summary: User deletion confirmation
+      value:
+        http: 200
+        message: Andy Jackson has been removed from your user list.
+        user_id: 837154
+        role_id: "1"
+        user_email: andy+jackson@wearedomo.com
+        user_name: Andy Jackson
+
     BrandingResponseExample:
       summary: Example branding configuration
       value:
