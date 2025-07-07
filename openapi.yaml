@@ -1857,28 +1857,28 @@ components:
 
   examples:
     ContactsListResponseExample:
-    summary: Paginated list of contacts
-    value:
-      http: 200
-      offset: 0
-      limit: 50
-      total_contacts: "3"
-      contacts:
-        - contact_id: "17224073"
-          contact_name: Buffy The Vampire Slayer
-          contact_email: buffy@sunnydale.com
-          contact_outstanding_documents: "0"
-          contact_created: "2025-07-07T09:54:08+0000"
-        - contact_id: "17224050"
-          contact_name: Jane Doe
-          contact_email: jane@example.com
-          contact_outstanding_documents: "0"
-          contact_created: "2025-07-07T09:52:54+0000"
-        - contact_id: "17224044"
-          contact_name: Jo Bloggs
-          contact_email: jo@example.com
-          contact_outstanding_documents: "0"
-          contact_created: "2025-07-07T09:52:32+0000"
+      summary: Paginated list of contacts
+      value:
+        http: 200
+        offset: 0
+        limit: 50
+        total_contacts: "3"
+        contacts:
+          - contact_id: "17224073"
+            contact_name: Buffy The Vampire Slayer
+            contact_email: buffy@sunnydale.com
+            contact_outstanding_documents: "0"
+            contact_created: "2025-07-07T09:54:08+0000"
+          - contact_id: "17224050"
+            contact_name: Jane Doe
+            contact_email: jane@example.com
+            contact_outstanding_documents: "0"
+            contact_created: "2025-07-07T09:52:54+0000"
+          - contact_id: "17224044"
+            contact_name: Jo Bloggs
+            contact_email: jo@example.com
+            contact_outstanding_documents: "0"
+            contact_created: "2025-07-07T09:52:32+0000"
 
     ContactCreateRequestExample:
       summary: Example create contact request
