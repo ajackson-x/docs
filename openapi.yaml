@@ -253,7 +253,6 @@ paths:
         "200":
           description: User deleted successfully
 
-
   /branding:
     get:
       summary: Get branding settings
@@ -610,6 +609,27 @@ paths:
                   $ref: '#/components/examples/WebhookDeleteResponseExample'
 
 components:
+  parameters:
+      OffsetParam:
+        name: offset
+        in: query
+        required: false
+        description: Pagination offset (defaults to 0 if not provided)
+        schema:
+          type: integer
+          example: 0
+          default: 0
+
+      LimitParam:
+        name: limit
+        in: query
+        required: false
+        description: Number of items to return (defaults to 10 if not provided)
+        schema:
+          type: integer
+          example: 10
+          default: 10
+          
   schemas:
     UsersListResponse:
       type: object
