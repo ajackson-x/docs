@@ -1,4 +1,4 @@
-openapi: 3.1.0 #wishful thinking that our spec is 3.1 at the moment
+openapi: 3.1.0
 
 info:
   title: Signable API  
@@ -151,7 +151,7 @@ paths:
 
   /templates/{template_fingerprint}:
     get:
-      summary: Get template details
+      summary: Get template
       description: Retrieves metadata and configuration for a single template.
       operationId: getTemplate
       tags: 
@@ -857,7 +857,7 @@ components:
         name: offset
         in: query
         required: false
-        description: Pagination offset (defaults to 0 if not provided)
+        description: Pagination offset
         schema:
           type: integer
           example: 0
@@ -867,7 +867,7 @@ components:
         name: limit
         in: query
         required: false
-        description: Number of items to return (defaults to 10 if not provided)
+        description: Number of items to return
         schema:
           type: integer
           example: 10
@@ -890,7 +890,6 @@ components:
         field_type:
           type: string
           description: This will always be `text`, due to merge functionality only being available for text field type.
-          example: text
           const: text
 
     TemplateParty:
@@ -904,12 +903,12 @@ components:
           example: Party
         party_merge_fields:
           type: array
-          description: >
+          description: |
             Template fields that can optionally be pre-filled with text by the sender to personalise the document before sending.
 
-            If a merge field is filled in during sending, it will appear as read-only for the signer.
+            - If a merge field is filled in during sending, it will appear as read-only for the signer.
+            - If left empty, the signer associated with the party ID in this object will be able to complete the field themselves.
 
-            If left empty, the signer associated with the party ID in this object will be able to complete the field themselves.
           items:
             $ref: '#/components/schemas/MergeField'
 
