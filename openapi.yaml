@@ -23,6 +23,9 @@ servers:
 security:
   - basicAuth: []
 x-tagsGroups:
+  - name: Envelopes
+    tags:
+      - Envelopes
   - name: Templates
     tags:
       - Templates
@@ -127,6 +130,41 @@ webhooks:
   # need to add all the other webhooks
 
 paths:
+  /envelopes:
+    get:
+      summary: List envelopes
+      description: >
+        Returns a paginated list of envelopes. You can filter by status or search by title using optional query parameters.
+      operationId: listEnvelopes
+      tags:
+        - Envelopes
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [signed, sent, cancelled, expired, rejected, draft, verify]
+          description: Filter by a single envelope status.
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: >
+            Case-insensitive keyword search on the envelope title. 
+            Matches partial words. Null values return unfiltered results.
+      responses:
+        '200':
+          description: A paginated list of envelopes.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeListResponse'
+              examples:
+                envelopeList:
+                  $ref: '#/components/examples/EnvelopeListExample'
+
   /templates:
     get:
       summary: List templates
@@ -857,7 +895,7 @@ components:
         name: offset
         in: query
         required: false
-        description: Pagination offset
+        description: The index of the first envelope to retrieve.
         schema:
           type: integer
           example: 0
@@ -867,13 +905,111 @@ components:
         name: limit
         in: query
         required: false
-        description: Number of items to return
+        description: >
+          The maximum number of envelopes to return.
+          If more than `50` is requested, `10` will be returned instead.
         schema:
           type: integer
-          example: 10
+          minimum: 1
+          maximum: 50
           default: 10
 
   schemas:
+    EnvelopeListResponse:
+      type: object
+      properties:
+        http:
+          type: integer
+          description: HTTP status code of the response.
+          example: 200
+        offset:
+          type: integer
+          description: The index of the first envelope in the result set.
+          example: 0
+        limit:
+          type: integer
+          description: The number of envelopes returned in this response.
+          example: 10
+        total_envelopes:
+          type: string
+          description: The total number of envelopes matching the query.
+          example: "3"
+        envelopes:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeSummary'
+
+    EnvelopeSummary:
+      type: object
+      properties:
+        envelope_fingerprint:
+          type: string
+          description: Unique identifier for the envelope.
+        envelope_title:
+          type: string
+          description: The title of the envelope.
+        envelope_status:
+          type: string
+          description: Current status of the envelope.
+          enum: [draft, sent, signed, cancelled, expired, rejected, verify]
+        envelope_redirect_url:
+          type: string
+          description: Redirect URL after signing. Empty string if not set.
+        envelope_created:
+          type: string
+          format: date-time
+          description: Timestamp when the envelope was created (ISO 8601).
+        envelope_sent:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the envelope was sent. Null if not yet sent.
+        envelope_processed:
+          type: string
+          format: date-time
+          nullable: true
+          description: Timestamp when the envelope was processed. Null if not yet processed.
+        envelope_all_at_once_enabled:
+          type: boolean
+          description: >
+            If true, the envelope is sent to all parties at the same time.
+            If false, the envelope is sent to parties one at a time, starting with the first.
+            For more info on "One at a time" signing sequence, see 
+            [Setting the signing sequence](https://help.signable.app/article/191-setting-the-signing-sequence)
+        envelope_requires_otp:
+          type: boolean
+          description: >
+            Whether a one-time-password (OTP) verification is enabled for this envelope.
+            For more info on OTPs, see 
+            [Enabling Two-Factor Authentication for Signers](https://help.signable.app/article/208-adding-a-one-time-password-to-an-envelope)
+        envelope_signed_pdf:
+          type: string
+          format: uri
+          nullable: true
+          description: Link to the signed PDF (if the envelope is signed).
+        envelope_parties:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeParty'
+
+    EnvelopeParty:
+      type: object
+      properties:
+        party_id:
+          type: string
+          description: Unique ID of the party within the envelope.
+        party_title:
+          type: string
+          description: Name of the party (label for the signer).
+        party_mobile_last4:
+          type: string
+          nullable: true
+          description: Last 4 digits of the mobile number, shown only if OTP is enabled.
+        party_password:
+          type: string
+          nullable: true
+          description: Password assigned to the party (if password protection is used).
+
     MergeField:
       type: object
       properties:
@@ -1204,7 +1340,7 @@ components:
           format: email
           example: nemo@coralreef.com
 
-    EnvelopeSummary:
+    ContactEnvelopeSummary:
       type: object
       properties:
         envelope_fingerprint:
@@ -1264,7 +1400,7 @@ components:
         envelopes:
           type: array
           items:
-            $ref: '#/components/schemas/EnvelopeSummary'
+            $ref: '#/components/schemas/ContactEnvelopeSummary'
 
     UsersListResponse:
       type: object
@@ -2187,6 +2323,59 @@ components:
           example: all
 
   examples:
+    EnvelopeListExample:
+      summary: An example paginated list of envelopes
+      value:
+        http: 200
+        offset: 0
+        limit: 10
+        total_envelopes: "3"
+        envelopes:
+          - envelope_fingerprint: "db9ab123d26e37ecdab6678c012d2207"
+            envelope_title: "Another Test"
+            envelope_status: "draft"
+            envelope_redirect_url: ""
+            envelope_created: "2025-07-07T11:30:27+0000"
+            envelope_sent: null
+            envelope_processed: null
+            envelope_all_at_once_enabled: true
+            envelope_requires_otp: false
+            envelope_parties:
+              - party_id: "45583378"
+                party_title: "Andy Test"
+                party_mobile_last4: null
+                party_password: null
+          - envelope_fingerprint: "082fb78846cc7cd7afe3688ced12438d"
+            envelope_title: "2nd Test"
+            envelope_status: "signed"
+            envelope_redirect_url: ""
+            envelope_created: "2025-07-07T11:27:44+0000"
+            envelope_sent: "2025-07-07T11:29:31+0000"
+            envelope_processed: "2025-07-07T11:30:09+0000"
+            envelope_all_at_once_enabled: true
+            envelope_requires_otp: false
+            envelope_parties:
+              - party_id: "45583236"
+                party_title: "Andy Test"
+                party_mobile_last4: null
+                party_password: null
+            envelope_signed_pdf: "https://api.signableapi.com/shareable/envelope?t=403cebcc-60ec-4cc2-b7d6-753fb7d5c682"
+          - envelope_fingerprint: "d02114531327fa2aa1c03ad6670790b9"
+            envelope_title: "Test Envelope"
+            envelope_status: "signed"
+            envelope_redirect_url: ""
+            envelope_created: "2025-07-07T10:30:02+0000"
+            envelope_sent: "2025-07-07T11:26:20+0000"
+            envelope_processed: "2025-07-07T11:27:20+0000"
+            envelope_all_at_once_enabled: true
+            envelope_requires_otp: false
+            envelope_parties:
+              - party_id: "45583038"
+                party_title: "Jane Doe"
+                party_mobile_last4: null
+                party_password: null
+            envelope_signed_pdf: "https://api.signableapi.com/shareable/envelope?t=3dd2069d-4a61-4c9e-99c8-9dfc737eb450"
+
     TemplatesListResponseExample:
       summary: Example template list response
       value:
