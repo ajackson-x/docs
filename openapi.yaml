@@ -163,7 +163,31 @@ paths:
                 $ref: '#/components/schemas/EnvelopeListResponse'
               examples:
                 envelopeList:
-                  $ref: '#/components/examples/EnvelopeListExample'
+                  $ref: '#/components/examples/EnvelopeListResponseExample'
+
+  /envelopes/{envelope_fingerprint}:
+    get:
+      summary: Get envelope details
+      description: >
+        Returns the full details of a specific envelope, including document data,
+        party information, field data, and envelope history.
+      parameters:
+        - name: envelope_fingerprint
+          in: path
+          required: true
+          description: Unique identifier for the envelope.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Details of the requested envelope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDetailParty'
+              examples:
+                envelopeDetails:
+                  $ref: '#/components/examples/EnvelopeGetResponseExample'
 
   /templates:
     get:
@@ -917,6 +941,12 @@ components:
   schemas:
     EnvelopeListResponse:
       type: object
+      required:
+        - http
+        - offset
+        - limit
+        - total_envelope
+        - envelopes
       properties:
         http:
           type: integer
@@ -937,10 +967,34 @@ components:
         envelopes:
           type: array
           items:
-            $ref: '#/components/schemas/EnvelopeSummary'
+            $ref: '#/components/schemas/EnvelopeSignedSummary'
 
-    EnvelopeSummary:
+    EnvelopeSignedSummary:
+      allOf:
+      - $ref: '#/components/schemas/EnvelopeUnsignedSummary'
+      - type: object
+        required:
+          - envelope_parties
+        properties:
+          envelope_parties:
+            type: array
+            items:
+              $ref: '#/components/schemas/EnvelopeParty'
+          envelope_signed_pdf:
+            $ref: '#/components/schemas/EnvelopeSignedPdfLink'
+
+    EnvelopeUnsignedSummary:
       type: object
+      required:
+          - envelope_fingerprint
+          - envelope_title
+          - envelope_status
+          - envelope_redirect_url
+          - envelope_created
+          - envelope_sent
+          - envelope_processed
+          - envelope_all_at_once_enabled
+          - envelope_requires_otp
       properties:
         envelope_fingerprint:
           type: string
@@ -974,41 +1028,228 @@ components:
           description: >
             If true, the envelope is sent to all parties at the same time.
             If false, the envelope is sent to parties one at a time, starting with the first.
+
             For more info on "One at a time" signing sequence, see 
             [Setting the signing sequence](https://help.signable.app/article/191-setting-the-signing-sequence)
         envelope_requires_otp:
           type: boolean
           description: >
             Whether a one-time-password (OTP) verification is enabled for this envelope.
+
             For more info on OTPs, see 
             [Enabling Two-Factor Authentication for Signers](https://help.signable.app/article/208-adding-a-one-time-password-to-an-envelope)
-        envelope_signed_pdf:
-          type: string
-          format: uri
-          nullable: true
-          description: Link to the signed PDF (if the envelope is signed).
-        envelope_parties:
-          type: array
-          items:
-            $ref: '#/components/schemas/EnvelopeParty'
 
     EnvelopeParty:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopePartyBase'
+
+    EnvelopePartyBase:
       type: object
+      required:
+        - party_id
+        - party_title
+        - party_mobile_last4
+        - party_password
       properties:
         party_id:
           type: string
-          description: Unique ID of the party within the envelope.
+          description: Unique identifier for the party in the envelope.
+          example: "45631119"
         party_title:
           type: string
-          description: Name of the party (label for the signer).
+          description: Label for the party, typically their name.
+          example: "Andy Signable"
         party_mobile_last4:
           type: string
           nullable: true
-          description: Last 4 digits of the mobile number, shown only if OTP is enabled.
+          description: Last 4 digits of the party’s mobile number (if OTP is enabled).
+          example: null
         party_password:
           type: string
           nullable: true
-          description: Password assigned to the party (if password protection is used).
+          description: Password assigned for accessing the envelope, if applicable.
+          example: "Test123"
+
+    EnvelopeDetailParty:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopePartyBase'
+        - type: object
+          required:
+          - contact_id
+          - contact_email
+          - party_status
+          - party_signature_type
+          - party_role
+          properties:
+            contact_id:
+              type: string
+              description: ID of the contact linked to the party.
+              example: "17225983"
+            contact_email:
+              type: string
+              description: Email address of the party.
+              example: "andy@wearedomo.com"
+            party_status:
+              type: string
+              enum: [pending, in progress, signed]
+              description: Status of the party's signing progress.
+              example: "in progress"
+            party_signature_type:
+              type: string
+              description: Indicates how the party will sign the envelope (`remote`, etc).
+              example: "remote"
+            party_role:
+              type: string
+              enum: [signer, copy]
+              description: Role of the party, they are either a signer or they are copied into the document with read-only permission.
+              example: "signer"
+
+    EnvelopeDetailResponse:
+      type: object
+      required:
+        - http
+      properties:
+        http:
+          type: integer
+          description: HTTP status code of the response.
+          example: 200
+        summary:
+          $ref: '#/components/schemas/EnvelopeUnsignedSummary'
+        parties:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeDetailParty'
+        envelope_documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeDocument'
+        envelope_signed_pdf:
+          $ref: '#/components/schemas/EnvelopeSignedPdfLink'
+        envelope_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeHistoryEvent'
+
+    EnvelopeSignedPdfLink:
+      type: string
+      format: uri
+      nullable: true
+      description: Direct download link to the signed PDF (if the envelope is signed).
+      example: "https://api.signableapi.com/shareable/envelope?t=71afe41f-b99f-42e7-9a06-7f4070df010f"
+
+    EnvelopeDocument:
+      type: object
+      required:
+        - document_fingerprint
+        - document_title
+        - document_page_total
+        - document_pdf_url
+        - document_thumbnails
+        - document_pages
+        - document_fields
+      properties:
+        document_fingerprint:
+          type: string
+          description: Unique identifier for the document.
+          example: "8ab4248168761318178b5c747c643a27"
+        document_title:
+          type: string
+          description: Title of the document.
+          example: "Sample Tenancy Contract"
+        document_page_total:
+          type: string
+          description: Total number of pages in the document.
+          example: "2"
+        document_pdf_url:
+          type: string
+          format: uri
+          description: Direct download link to the original PDF.
+          example: "https://docs.signable.co.uk/original/8ab4248168761318178b5c747c643a27.pdf"
+        document_thumbnails:
+          type: array
+          description: List of thumbnail image URLs for the document pages.
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://docs.signable.co.uk/small/8ab4248168761318178b5c747c643a27-0.jpg"
+            - "https://docs.signable.co.uk/small/8ab4248168761318178b5c747c643a27-1.jpg"
+        document_pages:
+          type: array
+          description: List of full-size image URLs for the document pages.
+          items:
+            type: string
+            format: uri
+          example:
+            - "https://docs.signable.co.uk/large/8ab4248168761318178b5c747c643a27-0.jpg"
+            - "https://docs.signable.co.uk/large/8ab4248168761318178b5c747c643a27-1.jpg"
+        document_fields:
+          type: array
+          description: List of fields assigned to parties in the document.
+          items:
+            $ref: '#/components/schemas/EnvelopeField'
+
+    EnvelopeField:
+      type: object
+      required:
+        - field_id
+        - field_title
+        - field_type
+        - field_value
+        - party_id
+      properties:
+        field_id:
+          type: string
+          description: Unique identifier for the field.
+          example: "452902787"
+        field_title:
+          type: string
+          description: The label or title of the field.
+          example: "First Name"
+        field_type:
+          type: string
+          enum: [text, date, checkbox, upload, dropdown]
+          description: Type of the field. Signature fields are not returned.
+          example: "text"
+        field_value:
+          type: string
+          description: Value filled in the field. May be empty.
+          example: "Andy Sackson"
+        party_id:
+          type: string
+          description: ID of the party this field is assigned to.
+          example: "45631119"
+        field_merge:
+          type: string
+          nullable: true
+          description: Merge field label used to pre-fill values.
+          example: "Sender Name"
+
+    EnvelopeHistoryEvent:
+      type: object
+      required:
+        - history_detail
+        - history_ip
+        - history_user_agent
+        - history_date
+      properties:
+        history_detail:
+          type: string
+          description: Description of the event that occurred.
+          example: "Sent the envelope to Andy Signable (andy@wearedomo.com) for signing"
+        history_ip:
+          type: string
+          description: IP address from where the action was triggered.
+          example: "147.147.97.34"
+        history_user_agent:
+          type: string
+          description: Browser or device info from where the event occurred.
+          example: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+        history_date:
+          type: string
+          format: date-time
+          description: Date and time when the event occurred.
+          example: "2025-07-08T15:02:48+0000"
 
     MergeField:
       type: object
@@ -2323,7 +2564,7 @@ components:
           example: all
 
   examples:
-    EnvelopeListExample:
+    EnvelopeListResponseExample:
       summary: An example paginated list of envelopes
       value:
         http: 200
@@ -2375,6 +2616,132 @@ components:
                 party_mobile_last4: null
                 party_password: null
             envelope_signed_pdf: "https://api.signableapi.com/shareable/envelope?t=3dd2069d-4a61-4c9e-99c8-9dfc737eb450"
+
+    EnvelopeGetResponseExample:
+      summary: Example envelope details response
+      value:
+        http: 200
+        summary:
+          envelope_fingerprint: "2b1fdc131d3a13aa5d6b5b5a4c2fb4c4"
+          envelope_title: "17 John Street Tenancy Contract - 25th Jun 2025"
+          envelope_status: "sent"
+          envelope_redirect_url: null
+          envelope_created: "2025-07-08T14:58:54+0000"
+          envelope_sent: "2025-07-08T15:02:49+0000"
+          envelope_processed: null
+          envelope_all_at_once_enabled: true
+          envelope_requires_otp: false
+        parties:
+          - party_id: "45631119"
+            party_title: "Andy Signable"
+            party_mobile_last4: null
+            party_password: "Test123"
+            contact_id: "17225983"
+            contact_email: "andy@wearedomo.com"
+            party_status: "in progress"
+            party_signature_type: "remote"
+            party_role: "signer"
+          - party_id: "45631121"
+            party_title: "Sandy"
+            party_mobile_last4: null
+            party_password: null
+            contact_id: "17241370"
+            contact_email: "andy+010725@wearedomo.com"
+            party_status: "in progress"
+            party_signature_type: "remote"
+            party_role: "signer"
+          - party_id: "45631122"
+            party_title: "Bristol Solicitors"
+            party_mobile_last4: null
+            party_password: null
+            contact_id: "17241371"
+            contact_email: "test@example.com"
+            party_status: "pending"
+            party_signature_type: "remote"
+            party_role: "copy"
+        envelope_documents:
+          - document_fingerprint: "8ab4248168761318178b5c747c643a27"
+            document_title: "Sample Tenancy Contract"
+            document_page_total: "2"
+            document_pdf_url: "https://docs.signable.co.uk/original/8ab4248168761318178b5c747c643a27.pdf"
+            document_thumbnails:
+              - "https://docs.signable.co.uk/small/8ab4248168761318178b5c747c643a27-0.jpg"
+              - "https://docs.signable.co.uk/small/8ab4248168761318178b5c747c643a27-1.jpg"
+            document_pages:
+              - "https://docs.signable.co.uk/large/8ab4248168761318178b5c747c643a27-0.jpg"
+              - "https://docs.signable.co.uk/large/8ab4248168761318178b5c747c643a27-1.jpg"
+            document_fields:
+              - field_id: "452902787"
+                field_title: "First Name"
+                field_type: "text"
+                field_value: "Andy Sackson"
+                party_id: "45631119"
+                field_merge: "Sender Name"
+              - field_id: "452902789"
+                field_title: "Date please"
+                field_type: "date"
+                field_value: ""
+                party_id: "45631119"
+                field_merge: null
+          - document_fingerprint: "b786a173554cc06371198caf0b250704"
+            document_title: "Sample Contract"
+            document_page_total: "1"
+            document_pdf_url: "https://docs.signable.co.uk/original/b786a173554cc06371198caf0b250704.pdf"
+            document_thumbnails:
+              - "https://docs.signable.co.uk/small/b786a173554cc06371198caf0b250704-0.jpg"
+            document_pages:
+              - "https://docs.signable.co.uk/large/b786a173554cc06371198caf0b250704-0.jpg"
+            document_fields:
+              - field_id: "452902797"
+                field_title: "Print Name"
+                field_type: "text"
+                field_value: ""
+                party_id: "45631119"
+                field_merge: null
+              - field_id: "452902798"
+                field_title: "Full Address"
+                field_type: "text"
+                field_value: ""
+                party_id: "45631119"
+                field_merge: null
+        envelope_signed_pdf: null
+        envelope_history:
+          - history_detail: "Envelope generated by Andy Loves Signable"
+            history_ip: "147.147.97.34"
+            history_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+            history_date: "2025-07-08T14:58:54+0000"
+          - history_detail: "Document generated with fingerprint 8ab4248168761318178b5c747c643a27"
+            history_ip: "147.147.97.34"
+            history_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+            history_date: "2025-07-08T14:58:55+0000"
+          - history_detail: "Document generated with fingerprint b786a173554cc06371198caf0b250704"
+            history_ip: "147.147.97.34"
+            history_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+            history_date: "2025-07-08T14:58:55+0000"
+          - history_detail: "Sent the envelope to Andy Signable (andy@wearedomo.com) for signing"
+            history_ip: "147.147.97.34"
+            history_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+            history_date: "2025-07-08T15:02:48+0000"
+          - history_detail: "Sent the envelope to Sandy (andy+010725@wearedomo.com) for signing"
+            history_ip: "147.147.97.34"
+            history_user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)..."
+            history_date: "2025-07-08T15:02:49+0000"
+          - history_detail: "Document emailed to andy@wearedomo.com"
+            history_ip: ""
+            history_user_agent: ""
+            history_date: "2025-07-08T15:02:49+0000"
+          - history_detail: "Document emailed to andy+010725@wearedomo.com"
+            history_ip: ""
+            history_user_agent: ""
+            history_date: "2025-07-08T15:02:49+0000"
+          - history_detail: "Andy Signable opened the document email."
+            history_ip: "66.249.93.102"
+            history_user_agent: "Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)"
+            history_date: "2025-07-09T08:37:19+0000"
+          - history_detail: "Sandy opened the document email."
+            history_ip: "66.249.93.98"
+            history_user_agent: "Mozilla/5.0 (Windows NT 5.1; rv:11.0) Gecko Firefox/11.0 (via ggpht.com GoogleImageProxy)"
+            history_date: "2025-07-09T08:37:19+0000"
 
     TemplatesListResponseExample:
       summary: Example template list response
