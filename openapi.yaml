@@ -146,7 +146,7 @@ paths:
           schema:
             type: string
             enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
-          description: Filter by a single envelope status. [See Envelope status values for more info →](/envelope-status.mdx)
+          description: Filter by a single envelope status. [See Envelope status values for more info →](/envelope-status)
         - in: query
           name: q
           schema:
@@ -691,7 +691,7 @@ paths:
       summary: Update a branding email
       description: >
         <Tip>You can include variables like `{company name}` and `{contract title}` 
-        in your email body to personalise content. [See the full list of supported variables →](/email-variables.mdx)</Tip>
+        in your email body to personalise content. [See the full list of supported variables →](/email-variables)</Tip>
       operationId: updateBrandingEmail
       tags:
         - Branding
@@ -1063,7 +1063,7 @@ components:
           description: The title of the envelope.
         envelope_status:
           type: string
-          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status.mdx)
+          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status)
           enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
         envelope_redirect_url:
           type: string
@@ -1719,7 +1719,7 @@ components:
           example: Another Test
         envelope_status:
           type: string
-          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status.mdx)
+          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status)
           enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
           example: draft
         envelope_created:
@@ -2338,12 +2338,7 @@ components:
         webhook_type:
           type: string
           description: >
-            The event type to subscribe to. Valid values include:
-            `send-envelope`, `signed-envelope`, `cancelled-envelope`, 
-            `rejected-envelope`, `bounced-envelope`, `add-user`, `add-contact`, 
-            `opened-envelope`, `add-template`, `all`, 
-            `signed-envelope-complete`, `verify-envelope-widget`, 
-            `signed-envelope-widget`, and `send-envelope-failed`.
+            The event type to subscribe to.
           enum:
             - send-envelope
             - signed-envelope
