@@ -192,6 +192,33 @@ paths:
                 envelopeDetails:
                   $ref: '#/components/examples/EnvelopeGetResponseExample'
 
+    delete:
+      summary: Delete an envelope
+      description: >
+        Deletes an envelope. Only available for envelopes in `draft`, `signed`, `expired` or `cancelled` status.
+        No notification email is sent to signers when an envelope is deleted.
+      operationId: deleteEnvelope
+      tags:
+        - Envelopes
+      parameters:
+        - name: envelope_fingerprint
+          in: path
+          required: true
+          description: The unique identifier of the envelope.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Envelope successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeDeleteResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/EnvelopeDeleteResponseExample'
+
   /envelopes/{envelope_fingerprint}/remind:
     put:
       summary: Send envelope reminder
@@ -218,7 +245,7 @@ paths:
                 $ref: '#/components/schemas/EnvelopeRemindResponse'
               examples:
                 success:
-                  $ref: '#/components/examples/EnvelopeRemindSuccess'
+                  $ref: '#/components/examples/EnvelopeRemindResponseExample'
 
   /envelopes/{envelope_fingerprint}/cancel:
     put:
@@ -246,7 +273,7 @@ paths:
                 $ref: '#/components/schemas/EnvelopeCancelResponse'
               examples:
                 success:
-                  $ref: '#/components/examples/EnvelopeCancelSuccess'
+                  $ref: '#/components/examples/EnvelopeCancelResponseExample'
 
   /envelopes/{envelope_fingerprint}/expire:
     put:
@@ -274,7 +301,7 @@ paths:
                 $ref: '#/components/schemas/EnvelopeExpireResponse'
               examples:
                 success:
-                  $ref: '#/components/examples/EnvelopeExpireSuccess'
+                  $ref: '#/components/examples/EnvelopeExpireResponseExample'
 
   /templates:
     get:
@@ -1312,6 +1339,37 @@ components:
           description: Merge field label used to pre-fill values.
           example: "Sender Name"
 
+    EnvelopeDeleteResponse:
+      type: object
+      required:
+        - http
+        - message
+        - envelope_fingerprint
+        - envelope_title
+        - envelope_status
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code of the response.
+        message:
+          type: string
+          example: The envelope has been expired
+          description: Human-readable confirmation message.
+        envelope_fingerprint:
+          type: string
+          format: uuid
+          example: 294e91ddcff135223c1dddc7fad6b543
+          description: Unique identifier for the expired envelope.
+        envelope_title:
+          type: string
+          example: Industrial Contract
+          description: Title of the envelope at the time of expiration.
+        envelope_status:
+          type: string
+          const: expired
+          description: The new status of the envelope after expiration.
+
     EnvelopeHistoryEvent:
       type: object
       required:
@@ -1414,7 +1472,6 @@ components:
         - envelope_fingerprint
         - envelope_title
         - envelope_status
-        - envelope_processed
       properties:
         http:
           type: integer
@@ -1422,26 +1479,21 @@ components:
           description: HTTP status code of the response.
         message:
           type: string
-          example: The envelope has been expired
+          example: The envelope has been deleted
           description: Human-readable confirmation message.
         envelope_fingerprint:
           type: string
           format: uuid
-          example: 294e91ddcff135223c1dddc7fad6b543
+          example: d02114531327fa2aa1c03ad6670790b9
           description: Unique identifier for the expired envelope.
         envelope_title:
           type: string
-          example: Industrial Contract
-          description: Title of the envelope at the time of expiration.
+          example: Test Envelope
+          description: Title of the envelope at the time of deletion.
         envelope_status:
           type: string
-          const: expired
-          description: The new status of the envelope after expiration.
-        envelope_processed:
-          type: string
-          format: date-time
-          example: 2025-07-14T14:37:34+0000
-          description: Timestamp when the expiration was processed.
+          const: deleted
+          description: The new status of the envelope after deletion.
 
     MergeField:
       type: object
@@ -2948,7 +3000,16 @@ components:
             history_user_agent: ""
             history_date: "2025-07-13T15:03:15+0000"
 
-    EnvelopeRemindSuccess:
+    EnvelopeDeleteResponseExample:
+          summary: Envelope deleted successfully
+          value:
+            http: 200
+            message: The envelope has been deleted
+            envelope_fingerprint: d02114531327fa2aa1c03ad6670790b9
+            envelope_title: Test Envelope
+            envelope_status: expired
+
+    EnvelopeRemindResponseExample:
       summary: Reminder email triggered
       value:
         http: 200
@@ -2957,7 +3018,7 @@ components:
         envelope_title: "17 John Street Tenancy Contract - 25th Jun 2025"
         envelope_all_at_once_enabled: true
 
-    EnvelopeCancelSuccess:
+    EnvelopeCancelResponseExample:
       summary: Envelope cancelled successfully
       value:
         http: 200
@@ -2967,7 +3028,7 @@ components:
         envelope_status: cancelled
         envelope_processed: 2025-07-14T13:34:34+0000
 
-    EnvelopeExpireSuccess:
+    EnvelopeExpireResponseExample:
           summary: Envelope expired successfully
           value:
             http: 200
