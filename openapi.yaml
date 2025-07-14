@@ -1354,21 +1354,21 @@ components:
           description: HTTP status code of the response.
         message:
           type: string
-          example: The envelope has been expired
+          example: The envelope has been deleted
           description: Human-readable confirmation message.
         envelope_fingerprint:
           type: string
           format: uuid
           example: 294e91ddcff135223c1dddc7fad6b543
-          description: Unique identifier for the expired envelope.
+          description: Unique identifier for the deleted envelope.
         envelope_title:
           type: string
           example: Industrial Contract
-          description: Title of the envelope at the time of expiration.
+          description: Title of the envelope at the time of deletion.
         envelope_status:
           type: string
           const: expired
-          description: The new status of the envelope after expiration.
+          description: The new status of the envelope after deletion.
 
     EnvelopeHistoryEvent:
       type: object
@@ -3007,7 +3007,7 @@ components:
             message: The envelope has been deleted
             envelope_fingerprint: d02114531327fa2aa1c03ad6670790b9
             envelope_title: Test Envelope
-            envelope_status: expired
+            envelope_status: deleted
 
     EnvelopeRemindResponseExample:
       summary: Reminder email triggered
