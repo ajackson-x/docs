@@ -171,6 +171,7 @@ paths:
       description: >
         Returns the full details of a specific envelope, including document data,
         party information, field data, and envelope history.
+      operationId: getEnvelope
       tags:
         - Envelopes
       parameters:
@@ -191,6 +192,34 @@ paths:
                 envelopeDetails:
                   $ref: '#/components/examples/EnvelopeGetResponseExample'
 
+  /envelopes/{envelope_id}/remind:
+    put:
+      summary: Trigger a reminder for all signing parties
+      description: >
+        Sends a reminder email to all outstanding signing parties for the specified envelope.  
+        If automatic reminders are enabled, this also resets the countdown timer for the next scheduled reminder.
+      operationId: remindEnvelope
+      tags:
+        - Envelopes
+      parameters:
+        - name: envelope_id
+          in: path
+          required: true
+          description: The fingerprint of the envelope to remind signers for.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Reminder successfully triggered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeRemindResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/EnvelopeRemindSuccess'
+                  
   /templates:
     get:
       summary: List templates
@@ -1252,6 +1281,37 @@ components:
           format: date-time
           description: Date and time when the event occurred.
           example: "2025-07-08T15:02:48+0000"
+
+    EnvelopeRemindResponse:
+      type: object
+      required:
+        - http
+        - message
+        - envelope_fingerprint
+        - envelope_title
+        - envelope_all_at_once_enabled
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code of the response.
+        message:
+          type: string
+          example: The signing parties for this envelope have been reminded.
+          description: Human-readable status message.
+        envelope_fingerprint:
+          type: string
+          format: uuid
+          example: 2b1fdc131d3a13aa5d6b5b5a4c2fb4c4
+          description: Unique fingerprint of the envelope.
+        envelope_title:
+          type: string
+          example: "17 John Street Tenancy Contract - 25th Jun 2025"
+          description: The title of the envelope at the time of the reminder.
+        envelope_all_at_once_enabled:
+          type: boolean
+          example: true
+          description: Indicates if the envelope is configured for all-at-once signing.
 
     MergeField:
       type: object
@@ -2770,6 +2830,15 @@ components:
             history_ip: ""
             history_user_agent: ""
             history_date: "2025-07-13T15:03:15+0000"
+
+    EnvelopeRemindSuccess:
+      summary: Reminder email triggered
+      value:
+        http: 200
+        message: The signing parties for this envelope have been reminded.
+        envelope_fingerprint: 2b1fdc131d3a13aa5d6b5b5a4c2fb4c4
+        envelope_title: "17 John Street Tenancy Contract - 25th Jun 2025"
+        envelope_all_at_once_enabled: true
 
     TemplatesListResponseExample:
       summary: Example template list response
