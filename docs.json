@@ -24,7 +24,8 @@
             "group": "Possibilities",
             "pages": [
               "webhooks",
-              "email-variables"
+              "email-variables",
+              "envelope-status"
             ]
           }
         ]

@@ -145,8 +145,8 @@ paths:
           name: status
           schema:
             type: string
-            enum: [signed, sent, cancelled, expired, rejected, draft, verify]
-          description: Filter by a single envelope status.
+            enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
+          description: Filter by a single envelope status. [See Envelope status values for more info →](/envelope-status.mdx)
         - in: query
           name: q
           schema:
@@ -178,7 +178,7 @@ paths:
         - name: envelope_fingerprint
           in: path
           required: true
-          description: Unique identifier for the envelope.
+          description: Unique identifier of the envelope.
           schema:
             type: string
       responses:
@@ -192,9 +192,9 @@ paths:
                 envelopeDetails:
                   $ref: '#/components/examples/EnvelopeGetResponseExample'
 
-  /envelopes/{envelope_id}/remind:
+  /envelopes/{envelope_fingerprint}/remind:
     put:
-      summary: Trigger a reminder for all signing parties
+      summary: Send envelope reminder
       description: >
         Sends a reminder email to all outstanding signing parties for the specified envelope.  
         If automatic reminders are enabled, this also resets the countdown timer for the next scheduled reminder.
@@ -202,10 +202,10 @@ paths:
       tags:
         - Envelopes
       parameters:
-        - name: envelope_id
+        - name: envelope_fingerprint
           in: path
           required: true
-          description: The fingerprint of the envelope to remind signers for.
+          description: The unique identifier of the envelope to remind signers for.
           schema:
             type: string
             format: uuid
@@ -219,7 +219,35 @@ paths:
               examples:
                 success:
                   $ref: '#/components/examples/EnvelopeRemindSuccess'
-                  
+
+  /envelopes/{envelope_fingerprint}/cancel:
+    put:
+      summary: Cancel an envelope
+      description: >
+        Cancels a `sent` envelope.  
+        A cancellation email will be sent to all signing parties, and the envelope will no longer be available for signing.
+      operationId: cancelEnvelope
+      tags:
+        - Envelopes
+      parameters:
+        - name: envelope_fingerprint
+          in: path
+          required: true
+          description: The unique identifier of the envelope to cancel.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Envelope successfully cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeCancelResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/EnvelopeCancelSuccess'
+
   /templates:
     get:
       summary: List templates
@@ -1035,8 +1063,8 @@ components:
           description: The title of the envelope.
         envelope_status:
           type: string
-          description: Current status of the envelope.
-          enum: [draft, sent, signed, cancelled, expired, rejected, verify]
+          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status.mdx)
+          enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
         envelope_redirect_url:
           type: string
           description: Redirect URL after signing. Empty string if not set.
@@ -1312,6 +1340,43 @@ components:
           type: boolean
           example: true
           description: Indicates if the envelope is configured for all-at-once signing.
+
+    EnvelopeCancelResponse:
+      type: object
+      required:
+        - http
+        - message
+        - envelope_fingerprint
+        - envelope_title
+        - envelope_status
+        - envelope_processed
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code of the response.
+        message:
+          type: string
+          example: The envelope has been cancelled
+          description: Human-readable confirmation message.
+        envelope_fingerprint:
+          type: string
+          format: uuid
+          example: 29ded086437a36dc6002c0e56ac652f2
+          description: Unique identifier for the cancelled envelope.
+        envelope_title:
+          type: string
+          example: Contract Settlement
+          description: Title of the envelope at the time of cancellation.
+        envelope_status:
+          type: string
+          const: cancelled
+          description: The new status of the envelope after cancellation.
+        envelope_processed:
+          type: string
+          format: date-time
+          example: 2025-07-14T13:34:34+0000
+          description: Timestamp when the cancellation was processed.
 
     MergeField:
       type: object
@@ -1654,16 +1719,8 @@ components:
           example: Another Test
         envelope_status:
           type: string
-          enum: [processing, sent, signed, cancelled, expired, failed, draft]
-          description: >
-            Status of the envelope:
-            - `processing`: Initial state when creating without a template
-            - `sent`: Envelope has been sent
-            - `signed`: All parties have signed
-            - `cancelled`: Cancelled by the sender
-            - `expired`: Envelope expired before signing
-            - `failed`: Processing failed
-            - `draft`: Created but not sent
+          description: Current status of the envelope. [See Envelope status values for more info →](/envelope-status.mdx)
+          enum: [processing, failed, draft, sent, signed, cancelled, expired, rejected, verify]
           example: draft
         envelope_created:
           type: string
@@ -2839,6 +2896,16 @@ components:
         envelope_fingerprint: 2b1fdc131d3a13aa5d6b5b5a4c2fb4c4
         envelope_title: "17 John Street Tenancy Contract - 25th Jun 2025"
         envelope_all_at_once_enabled: true
+
+    EnvelopeCancelSuccess:
+      summary: Envelope cancelled successfully
+      value:
+        http: 200
+        message: The envelope has been cancelled
+        envelope_fingerprint: 29ded086437a36dc6002c0e56ac652f2
+        envelope_title: Contract Settlement
+        envelope_status: cancelled
+        envelope_processed: 2025-07-14T13:34:34+0000
 
     TemplatesListResponseExample:
       summary: Example template list response
