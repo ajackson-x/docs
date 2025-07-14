@@ -1,18 +1,18 @@
 ---
-title: 'Envelope status values'
-description: 'A complete list of possible statuses returned for an envelope'
+title: "Envelope status values"
+description: "A complete list of possible statuses returned for an envelope"
 ---
 
 Each envelope moves through a series of status values during its lifecycle — from creation to completion, or cancellation. This table outlines what each status represents, so you can track and respond to envelope progress accurately. Statuses are returned in API responses and can be used to drive application logic, trigger user notifications, or audit workflow state.
 
-| Status         | Description                                                                                                                    |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `{processing}` | Document(s) have been uploaded to an envelope and are being processed. |
-| `{failed}`     | The document(s) uploaded to an envelope failed during processing. |
-| `{draft}`      | The envelope has been created but not yet sent. It can still be edited or updated before sending.                              |
-| `{sent}`       | The envelope has been sent to all parties. Awaiting signatures.                             |
-| `{signed}`     | All required parties have signed the envelope. The process is complete and the final signed document is available.             |
-| `{cancelled}`  | The envelope was manually cancelled and can no longer be signed. A cancellation email is sent to the signers.                  |
-| `{rejected}`   | A recipient has actively declined to sign the envelope. No further signing will proceed.                           |
-| `{expired}`    | The envelope was not signed before its expiration date and has been automatically cancelled.                                   |
-| `{verify}`     | The envelope has been signed is awaiting signer identity verification via email. Only applicable to embedded widget flow.                                    |
+| Status         | Description                                                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `{processing}` | Document(s) have been uploaded to an envelope and are being processed.                                                    |
+| `{failed}`     | The document(s) uploaded to an envelope failed during processing.                                                         |
+| `{draft}`      | The envelope has been created but not yet sent. It can still be edited or updated before sending.                         |
+| `{sent}`       | The envelope has been sent to all parties and is awaiting signatures. Some parties may have already signed, but the envelope is not yet fully completed. |
+| `{signed}`     | All required parties have signed the envelope. The process is complete and the final signed document is available.        |
+| `{cancelled}`  | The envelope was manually cancelled and can no longer be signed. A cancellation email is sent to the signers.             |
+| `{rejected}`   | A recipient has actively declined to sign the envelope. No further signing will proceed.                                  |
+| `{expired}`    | The envelope was not signed before its expiration date and has been automatically cancelled.                              |
+| `{verify}`     | The envelope has been signed is awaiting signer identity verification via email. Only applicable to embedded widget flow. |
