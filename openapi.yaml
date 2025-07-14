@@ -248,6 +248,34 @@ paths:
                 success:
                   $ref: '#/components/examples/EnvelopeCancelSuccess'
 
+  /envelopes/{envelope_fingerprint}/expire:
+    put:
+      summary: Expire an envelope
+      description: >
+        Expires a `sent` envelope, preventing any further signing interaction.    
+        No notification email is sent to signers when an envelope expires.
+      operationId: expireEnvelope
+      tags:
+        - Envelopes
+      parameters:
+        - name: envelope_fingerprint
+          in: path
+          required: true
+          description: The unique identifier of the envelope.
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Envelope successfully expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeExpireResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/EnvelopeExpireSuccess'
+
   /templates:
     get:
       summary: List templates
@@ -1377,6 +1405,43 @@ components:
           format: date-time
           example: 2025-07-14T13:34:34+0000
           description: Timestamp when the cancellation was processed.
+
+    EnvelopeExpireResponse:
+      type: object
+      required:
+        - http
+        - message
+        - envelope_fingerprint
+        - envelope_title
+        - envelope_status
+        - envelope_processed
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code of the response.
+        message:
+          type: string
+          example: The envelope has been expired
+          description: Human-readable confirmation message.
+        envelope_fingerprint:
+          type: string
+          format: uuid
+          example: 294e91ddcff135223c1dddc7fad6b543
+          description: Unique identifier for the expired envelope.
+        envelope_title:
+          type: string
+          example: Industrial Contract
+          description: Title of the envelope at the time of expiration.
+        envelope_status:
+          type: string
+          const: expired
+          description: The new status of the envelope after expiration.
+        envelope_processed:
+          type: string
+          format: date-time
+          example: 2025-07-14T14:37:34+0000
+          description: Timestamp when the expiration was processed.
 
     MergeField:
       type: object
@@ -2901,6 +2966,16 @@ components:
         envelope_title: Contract Settlement
         envelope_status: cancelled
         envelope_processed: 2025-07-14T13:34:34+0000
+
+    EnvelopeExpireSuccess:
+          summary: Envelope expired successfully
+          value:
+            http: 200
+            message: The envelope has been expired
+            envelope_fingerprint: 294e91ddcff135223c1dddc7fad6b543
+            envelope_title: Industrial Contract
+            envelope_status: expired
+            envelope_processed: 2025-07-14T14:37:34+0000
 
     TemplatesListResponseExample:
       summary: Example template list response
