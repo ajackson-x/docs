@@ -1367,7 +1367,7 @@ components:
           description: Title of the envelope at the time of deletion.
         envelope_status:
           type: string
-          const: expired
+          const: deleted
           description: The new status of the envelope after deletion.
 
     EnvelopeHistoryEvent:
