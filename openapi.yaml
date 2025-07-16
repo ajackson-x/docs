@@ -169,7 +169,7 @@ paths:
       summary: Send an envelope
       operationId: sendEnvelope
       description: |
-        Creates and sends a new envelope and queues it for sending. You can attach documents and assign signing or copy parties.
+        Creates a new envelope and queues it for sending. You can attach documents and assign signing or copy parties.
       tags:
         - Envelopes
       requestBody:
@@ -179,10 +179,8 @@ paths:
             schema:
               $ref: '#/components/schemas/EnvelopeSendRequest'
             examples:
-              sendDocURL:
-                $ref: '#/components/examples/EnvelopeSendDocURLRequestExample'
-              sendDocContent:
-                $ref: '#/components/examples/EnvelopeSendDocContentRequestExample'
+              default:
+                $ref: '#/components/examples/EnvelopeSendRequestExample'
             
       responses:
         '202':
@@ -192,10 +190,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnvelopeSendResponse'
               examples:
-                sendDocURL:
-                  $ref: '#/components/examples/EnvelopeSendDocURLResponseExample'
-                sendDocContent:
-                  $ref: '#/components/examples/EnvelopeSendDocContentResponseExample'
+                default:
+                  $ref: '#/components/examples/EnvelopeSendResponseExample'
                 
   /envelopes/{envelope_fingerprint}:
     get:
@@ -1140,6 +1136,17 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/EnvelopeHistoryEvent'
+            envelope_meta:
+              type: object
+              description: >
+                Optional metadata to associate with the envelope. These key-value pairs are 
+                stored by Signable and returned in the response and all envelope related webhooks.
+                Useful for attaching internal IDs, status flags, tags, or any contextual 
+                information relevant to your system.
+              additionalProperties: true
+              example:
+                internal_id: ABC123
+                VIP: false
 
     EnvelopeSendRequest:
       type: object
@@ -1203,7 +1210,8 @@ components:
             $ref: '#/components/schemas/EnvelopeSendParty'
         envelope_documents:
           type: array
-          description: List of documents to be sent in the envelope.
+          description: List of documents to be sent in the envelope. Each record must either include a URL to the file,
+            or a combination of base64-encoded content and filename.
           items:
             $ref: '#/components/schemas/EnvelopeSendDocument'
 
@@ -1315,9 +1323,6 @@ components:
           example: secret123
 
     EnvelopeSendDocument:
-      description: >
-        A document to include in the envelope. Must either include a URL to the file,
-        or a combination of base64-encoded content and filename. These options are mutually exclusive.
       oneOf:
         - type: object
           required:
@@ -1348,9 +1353,10 @@ components:
               type: string
               format: byte
               description: Base64-encoded file content.
+              example: "JVBERi0xLjQKJdPr6...Zgo2MDE3MwolJUVPRgo="
             document_file_name:
               type: string
-              description: Filename with extension (e.g. `contract.pdf`).
+              description: Filename with extension, only `.pdf`, `.docx` or `xlsx` are accepted.
               example: contract.pdf
 
     EnvelopeSignedSummary:
@@ -3243,11 +3249,14 @@ components:
             history_ip: ""
             history_user_agent: ""
             history_date: "2025-07-13T15:03:15+0000"
+        envelope_meta:
+          internal_id: ABC123
+          VIP: false
 
-    EnvelopeSendDocURLRequestExample:
+    EnvelopeSendRequestExample:
       summary: Example send envelope successful request
       value:
-        envelope_title: Ashbrook Road 10/06/25
+        envelope_title: Singer Road 23/06/25
         user_id: 838180
         envelope_redirect_url: https://www.example.com
         envelope_all_at_once_enabled: false
@@ -3272,12 +3281,20 @@ components:
           - party_name: Spectator
             party_email: andy+spectator@wearedomo.com
             party_role: copy
-            party_message: Hello Maisy, Please have a read
+            party_message: Hello Alex, Please have a read
+          - party_name: Tim Matthews
+            party_email: andy@wearedomo.com
+            party_role: signer3
+            party_message: Hello, Please sign pronto!
+            party_mobile: "+447510417059"
         envelope_documents:
           - document_url: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
             document_title: Test Agreement
+          - document_title: Validation Contract
+            document_file_name: ValidationContract.pdf
+            document_file_content: JVBERi0xLjQKJdPr6...Zgo2MDE3MwolJUVPRgo=
 
-    EnvelopeSendDocURLResponseExample:
+    EnvelopeSendResponseExample:
       summary: Example send envelope with `document_url` successful response
       value:
         http: 202
@@ -3303,16 +3320,6 @@ components:
             party_title: "Spectator"
             party_mobile_last4: null
             party_password: null
-
-    EnvelopeSendDocContentRequestExample:
-      summary: xxxx
-      value:
-        envelope_title: xxx
-
-    EnvelopeSendDocContentResponseExample:
-      summary: xxxx
-      value:
-        envelope_title: xxx
 
     EnvelopeDeleteResponseExample:
           summary: Envelope deleted successfully
