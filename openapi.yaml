@@ -179,8 +179,10 @@ paths:
             schema:
               $ref: '#/components/schemas/EnvelopeSendRequest'
             examples:
-              default:
-                $ref: '#/components/examples/EnvelopeSendRequestExample'
+              sendDocURL:
+                $ref: '#/components/examples/EnvelopeSendDocURLRequestExample'
+              sendDocContent:
+                $ref: '#/components/examples/EnvelopeSendDocContentRequestExample'
             
       responses:
         '202':
@@ -190,8 +192,10 @@ paths:
               schema:
                 $ref: '#/components/schemas/EnvelopeSendResponse'
               examples:
-                default:
-                  $ref: '#/components/examples/EnvelopeSendResponseExample'
+                sendDocURL:
+                  $ref: '#/components/examples/EnvelopeSendDocURLResponseExample'
+                sendDocContent:
+                  $ref: '#/components/examples/EnvelopeSendDocContentResponseExample'
                 
   /envelopes/{envelope_fingerprint}:
     get:
@@ -1190,7 +1194,11 @@ components:
             VIP: false
         envelope_parties:
           type: array
-          description: List of parties involved in the envelope.
+          description: >
+            List of parties involved in the envelope. Each party can be a signer or a copy recipient. 
+            If `envelope_all_at_once_enabled` is set to `false`, signers will be notified sequentially 
+            based on the order they appear in this array. Copy recipients (with role `copy`) are notified 
+            only after all signers have completed their actions.
           items:
             $ref: '#/components/schemas/EnvelopeSendParty'
         envelope_documents:
@@ -1307,37 +1315,43 @@ components:
           example: secret123
 
     EnvelopeSendDocument:
-      type: object
-      description: A document to include in the envelope. Must include either a URL or file content with filename.
-      allOf:
+      description: >
+        A document to include in the envelope. Must either include a URL to the file,
+        or a combination of base64-encoded content and filename. These options are mutually exclusive.
+      oneOf:
         - type: object
           required:
             - document_title
+            - document_url
           properties:
             document_title:
               type: string
               description: Title of the document for internal use and audit trail.
               example: Test Agreement
-        - oneOf:
-            - required:
-                - document_url
-            - required:
-                - document_file_content
-                - document_file_name
-      properties:
-        document_url:
-          type: string
-          format: uri
-          description: URL to the hosted document (PDF, Word, or Excel).
-          example: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
-        document_file_content:
-          type: string
-          format: byte
-          description: Base64-encoded file content as an alternative to `document_url`.
-        document_file_name:
-          type: string
-          description: Filename with extension (used only with `document_file_content`).
-          example: contract.pdf
+            document_url:
+              type: string
+              format: uri
+              description: URL to the hosted document (PDF, Word, or Excel).
+              example: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
+
+        - type: object
+          required:
+            - document_title
+            - document_file_content
+            - document_file_name
+          properties:
+            document_title:
+              type: string
+              description: Title of the document for internal use and audit trail.
+              example: Test Agreement
+            document_file_content:
+              type: string
+              format: byte
+              description: Base64-encoded file content.
+            document_file_name:
+              type: string
+              description: Filename with extension (e.g. `contract.pdf`).
+              example: contract.pdf
 
     EnvelopeSignedSummary:
       allOf:
@@ -1466,8 +1480,8 @@ components:
               example: "in progress"
             party_signature_type:
               type: string
-              description: Indicates how the party will sign the envelope (`remote`, etc).
-              example: "remote"
+              description: Indicates how the party will sign the envelope. Only `remote` value is supported.
+              const: "remote"
             party_role:
               type: string
               enum: [signer, copy]
@@ -3230,7 +3244,7 @@ components:
             history_user_agent: ""
             history_date: "2025-07-13T15:03:15+0000"
 
-    EnvelopeSendRequestExample:
+    EnvelopeSendDocURLRequestExample:
       summary: Example send envelope successful request
       value:
         envelope_title: Ashbrook Road 10/06/25
@@ -3263,8 +3277,8 @@ components:
           - document_url: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
             document_title: Test Agreement
 
-    EnvelopeSendResponseExample:
-      summary: Example send envelope successful response
+    EnvelopeSendDocURLResponseExample:
+      summary: Example send envelope with `document_url` successful response
       value:
         http: 202
         message: "Your envelope with title Ashbrook Road 10/06/25 will be processed and sent out."
@@ -3289,6 +3303,16 @@ components:
             party_title: "Spectator"
             party_mobile_last4: null
             party_password: null
+
+    EnvelopeSendDocContentRequestExample:
+      summary: xxxx
+      value:
+        envelope_title: xxx
+
+    EnvelopeSendDocContentResponseExample:
+      summary: xxxx
+      value:
+        envelope_title: xxx
 
     EnvelopeDeleteResponseExample:
           summary: Envelope deleted successfully
