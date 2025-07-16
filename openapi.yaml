@@ -165,6 +165,34 @@ paths:
                 envelopeList:
                   $ref: '#/components/examples/EnvelopeListResponseExample'
 
+    post:
+      summary: Send an envelope
+      operationId: sendEnvelope
+      description: |
+        Creates and sends a new envelope and queues it for sending. You can attach documents and assign signing or copy parties.
+      tags:
+        - Envelopes
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvelopeSendRequest'
+            examples:
+              default:
+                $ref: '#/components/examples/EnvelopeSendRequestExample'
+            
+      responses:
+        '202':
+          description: Envelope successfully created and queued for sending.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvelopeSendResponse'
+              examples:
+                default:
+                  $ref: '#/components/examples/EnvelopeSendResponseExample'
+                
   /envelopes/{envelope_fingerprint}:
     get:
       summary: Get envelope details
@@ -1083,6 +1111,234 @@ components:
           items:
             $ref: '#/components/schemas/EnvelopeSignedSummary'
 
+    EnvelopeDetailResponse:
+      allOf:
+        - $ref: '#/components/schemas/EnvelopeUnsignedSummary'
+        - type: object
+          required:
+            - http
+          properties:
+            http:
+              type: integer
+              description: HTTP status code of the response.
+              example: 200
+            envelope_parties:
+              type: array
+              items:
+                $ref: '#/components/schemas/EnvelopeDetailParty'
+            envelope_documents:
+              type: array
+              items:
+                $ref: '#/components/schemas/EnvelopeDocument'
+            envelope_signed_pdf:
+              $ref: '#/components/schemas/EnvelopeSignedPdfLink'
+            envelope_history:
+              type: array
+              items:
+                $ref: '#/components/schemas/EnvelopeHistoryEvent'
+
+    EnvelopeSendRequest:
+      type: object
+      required:
+        - envelope_title
+        - envelope_parties
+        - envelope_documents
+      properties:
+        envelope_title:
+          type: string
+          description: Title of the envelope to be displayed to signers.
+          example: Ashbrook Road 10/06/25
+        user_id:
+          type: integer
+          description: ID of the user sending the envelope. If omitted, it won’t be linked to a user and email notifications will be sent to the company email address.
+          example: 838180
+        envelope_redirect_url:
+          type: string
+          format: uri
+          description: Where to redirect the signer after completion. Defaults to Signable’s confirmation page if not provided.
+          example: https://www.example.com
+        envelope_all_at_once_enabled:
+          type: boolean
+          description: If true, sends to all parties at once. If false, sends sequentially (one-at-a-time).
+          example: false
+        envelope_requires_otp:
+          type: boolean
+          description: >
+            Enables one-time-password (OTP) signing for all signers.
+            <Warning> Requires `party_mobile` and disallows `envelope_password_protect`.</Warning>
+          example: true
+        envelope_password_protect:
+          type: boolean
+          description: Enables password protection. System generates a password or use `party_password` per party.
+          example: false
+        envelope_auto_expire_hours:
+          type: integer
+          minimum: 12
+          description: Number of hours before the envelope expires automatically.
+          example: 144
+        envelope_auto_remind_hours:
+          type: integer
+          minimum: 12
+          description: Frequency in hours for automatic reminder emails to signers.
+          example: 72
+        envelope_meta:
+          type: object
+          description: Custom metadata stored alongside the envelope.
+          additionalProperties: true
+          example:
+            internal_id: ABC123
+            VIP: false
+        envelope_parties:
+          type: array
+          description: List of parties involved in the envelope.
+          items:
+            $ref: '#/components/schemas/EnvelopeSendParty'
+        envelope_documents:
+          type: array
+          description: List of documents to be sent in the envelope.
+          items:
+            $ref: '#/components/schemas/EnvelopeSendDocument'
+
+    EnvelopeSendResponse:
+      type: object
+      description: Response returned when an envelope is successfully queued for sending.
+      properties:
+        http:
+          type: integer
+          description: HTTP status code indicating success.
+          example: 202
+        message:
+          type: string
+          description: A human-readable message confirming the envelope is queued.
+          example: Your envelope with title Ashbrook Road 10/06/25 will be processed and sent out.
+        href:
+          type: string
+          format: uri
+          description: URL to retrieve envelope details.
+          example: https://api.signable.co.uk/v1/envelopes/b0ce54032b7bee24fca780193ba95fe0
+        envelope_title:
+          type: string
+          description: Title of the envelope that was submitted.
+          example: Ashbrook Road 10/06/25
+        envelope_fingerprint:
+          type: string
+          description: Unique identifier (hash) for the envelope.
+          example: b0ce54032b7bee24fca780193ba95fe0
+        envelope_password_protect:
+          type: boolean
+          description: Indicates if password protection was enabled on the envelope.
+          example: false
+        envelope_requires_otp:
+          type: boolean
+          description: Indicates if one-time-password verification was enabled.
+          example: true
+        envelope_redirect_url:
+          type: string
+          format: uri
+          description: URL the signer will be redirected to after completing the envelope.
+          example: https://www.example.com
+        envelope_queued:
+          type: string
+          format: date-time
+          description: Timestamp when the envelope was successfully queued.
+          example: 2025-07-16T09:58:21+0000
+        envelope_all_at_once_enabled:
+          type: boolean
+          description: Whether the envelope was sent to all parties simultaneously (`true`) or sequentially (`false`).
+          example: false
+        envelope_parties:
+          type: array
+          description: List of parties associated with the envelope, including signer and copy recipients.
+          items:
+            type: object
+            properties:
+              party_id:
+                type: string
+                description: Unique identifier for the party.
+                example: "45831671"
+              party_title:
+                type: string
+                description: Name of the party.
+                example: Alex Mitchell
+              party_mobile_last4:
+                type: string
+                nullable: true
+                description: Last 4 digits of the party’s mobile number (if OTP is enabled).
+                example: "7059"
+              party_password:
+                type: string
+                nullable: true
+                description: Password for party access if password protection was enabled.
+                example: null
+
+    EnvelopeSendParty:
+      type: object
+      required:
+        - party_name
+        - party_email
+        - party_role
+      properties:
+        party_name:
+          type: string
+          description: Full name of the party.
+          example: Andy Signers
+        party_email:
+          type: string
+          format: email
+          description: Email address of the party.
+          example: andy@wearedomo.com
+        party_role:
+          type: string
+          description: >
+            Role tag corresponding to signer tags in the document, or 'copy' for non-signing parties.
+            <Warning>Signer tags **must** start with the string `signer`.</Warning>
+          example: signer
+        party_message:
+          type: string
+          description: Optional message included in the email sent to the party.
+          example: Please sign as soon as you can.
+        party_mobile:
+          type: string
+          description: Mobile number in E.164 format (required for signers if `envelope_requires_otp` is true).
+          example: "+447510417059"
+        party_password:
+          type: string
+          description: Custom password for accessing the envelope (used only if `envelope_password_protect` is true).
+          example: secret123
+
+    EnvelopeSendDocument:
+      type: object
+      description: A document to include in the envelope. Must include either a URL or file content with filename.
+      allOf:
+        - type: object
+          required:
+            - document_title
+          properties:
+            document_title:
+              type: string
+              description: Title of the document for internal use and audit trail.
+              example: Test Agreement
+        - oneOf:
+            - required:
+                - document_url
+            - required:
+                - document_file_content
+                - document_file_name
+      properties:
+        document_url:
+          type: string
+          format: uri
+          description: URL to the hosted document (PDF, Word, or Excel).
+          example: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
+        document_file_content:
+          type: string
+          format: byte
+          description: Base64-encoded file content as an alternative to `document_url`.
+        document_file_name:
+          type: string
+          description: Filename with extension (used only with `document_file_content`).
+          example: contract.pdf
+
     EnvelopeSignedSummary:
       allOf:
       - $ref: '#/components/schemas/EnvelopeUnsignedSummary'
@@ -1217,32 +1473,6 @@ components:
               enum: [signer, copy]
               description: Role of the party, they are either a signer or they are copied into the document with read-only permission.
               example: "signer"
-
-    EnvelopeDetailResponse:
-      allOf:
-        - $ref: '#/components/schemas/EnvelopeUnsignedSummary'
-        - type: object
-          required:
-            - http
-          properties:
-            http:
-              type: integer
-              description: HTTP status code of the response.
-              example: 200
-            envelope_parties:
-              type: array
-              items:
-                $ref: '#/components/schemas/EnvelopeDetailParty'
-            envelope_documents:
-              type: array
-              items:
-                $ref: '#/components/schemas/EnvelopeDocument'
-            envelope_signed_pdf:
-              $ref: '#/components/schemas/EnvelopeSignedPdfLink'
-            envelope_history:
-              type: array
-              items:
-                $ref: '#/components/schemas/EnvelopeHistoryEvent'
 
     EnvelopeSignedPdfLink:
       type: string
@@ -2999,6 +3229,66 @@ components:
             history_ip: ""
             history_user_agent: ""
             history_date: "2025-07-13T15:03:15+0000"
+
+    EnvelopeSendRequestExample:
+      summary: Example send envelope successful request
+      value:
+        envelope_title: Ashbrook Road 10/06/25
+        user_id: 838180
+        envelope_redirect_url: https://www.example.com
+        envelope_all_at_once_enabled: false
+        envelope_requires_otp: true
+        envelope_password_protect: false
+        envelope_auto_expire_hours: 144
+        envelope_auto_remind_hours: 72
+        envelope_meta:
+          internal_id: ABC123
+          VIP: false
+        envelope_parties:
+          - party_name: Alex Mitchell
+            party_email: andy+alex@wearedomo.com
+            party_role: signer2
+            party_message: Hello Alex, Please review and sign
+            party_mobile: "+447510417059"
+          - party_name: Andy Signers
+            party_email: andy@wearedomo.com
+            party_role: signer1
+            party_message: Hello, Please sign pronto!
+            party_mobile: "+447510417059"
+          - party_name: Spectator
+            party_email: andy+spectator@wearedomo.com
+            party_role: copy
+            party_message: Hello Maisy, Please have a read
+        envelope_documents:
+          - document_url: https://yellow-della-30.tiiny.site/Tenancy-Contract-2025-v2.pdf
+            document_title: Test Agreement
+
+    EnvelopeSendResponseExample:
+      summary: Example send envelope successful response
+      value:
+        http: 202
+        message: "Your envelope with title Ashbrook Road 10/06/25 will be processed and sent out."
+        href: "https://api.signable.co.uk/v1/envelopes/b0ce54032b7bee24fca780193ba95fe0"
+        envelope_title: "Ashbrook Road 10/06/25"
+        envelope_fingerprint: "b0ce54032b7bee24fca780193ba95fe0"
+        envelope_password_protect: false
+        envelope_requires_otp: true
+        envelope_redirect_url: "https://www.example.com"
+        envelope_queued: "2025-07-16T09:58:21+0000"
+        envelope_all_at_once_enabled: false
+        envelope_parties:
+          - party_id: "45831671"
+            party_title: "Alex Mitchell"
+            party_mobile_last4: "7059"
+            party_password: null
+          - party_id: "45831672"
+            party_title: "Andy Signers"
+            party_mobile_last4: "7059"
+            party_password: null
+          - party_id: "45831673"
+            party_title: "Spectator"
+            party_mobile_last4: null
+            party_password: null
 
     EnvelopeDeleteResponseExample:
           summary: Envelope deleted successfully
