@@ -176,9 +176,12 @@ paths:
           - Provide a `document_url` (a publicly accessible PDF, Word, or Excel file), **or**
           - Include `document_file_content` (base64-encoded file) and `document_file_name`
 
-          **Option 2 – Reference a Signable template:**
-          - Use a `document_template_fingerprint`
-          - Optionally provide `document_merge_fields` for pre-filling content
+          **Option 2 – Reference a single Signable template:**
+          - Use a single `document_template_fingerprint`
+
+          **Option 3 – Reference multiple Signable templates:**
+          - Use multiple `document_template_fingerprint` records
+          - Link parties to templates documents
 
           ⚠️ **Note:** Only one document input method can be used per request.
       operationId: sendEnvelope
