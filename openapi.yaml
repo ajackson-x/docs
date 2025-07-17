@@ -176,9 +176,12 @@ paths:
           - Provide a `document_url` (a publicly accessible PDF, Word, or Excel file), **or**
           - Include `document_file_content` (base64-encoded file) and `document_file_name`
 
-          **Option 2 – Reference a Signable template:**
-          - Use a `document_template_fingerprint`
-          - Optionally provide `document_merge_fields` for pre-filling content
+          **Option 2 – Reference a single Signable template:**
+          - Use a single `document_template_fingerprint`
+
+          **Option 3 – Reference multiple Signable templates:**
+          - Use multiple `document_template_fingerprint` records
+          - Link parties to templates documents
 
           ⚠️ **Note:** Only one document input method can be used per request.
       operationId: sendEnvelope
@@ -1283,13 +1286,13 @@ components:
         envelope_signing_embed:
           type: string
           description: |
-            An embeddable HTML `<iframe>` snippet that renders the signing view within your application.
-            This field is returned **only if embed signing has been enabled on your account** by the Signable Support team.
-            To request access, please contact us at [Contact Signable](https://www.signable.co.uk/contact).
+            An embeddable HTML `<iframe>` snippet that renders the signing page within your application.
+            This field is **only returned if embed signing has been enabled on your account** by the Signable Support team.
+            To request access, please [contact us](https://www.signable.co.uk/contact).
 
-            ⚠️ **Notes:**
-            This field is only returned in the POST response. The field is not returned in GET `/envelopes/{envelope_fingerprint}`.
-            This field is only available when sending envelopes using templates (single or multiple).
+            ⚠️ **Notes**
+            - This field is only available when sending envelopes using templates (single or multiple).
+            - This field is only returned in the POST response, it will not be returned in GET `/envelopes/{envelope_fingerprint}`.
           example: |
             <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect:
@@ -3611,8 +3614,6 @@ components:
         href: "https://api.signable.co.uk/v1/envelopes/52d8c58d3dda4cf6c4431ef3ac5ccb11"
         envelope_title: "Singer Road 23/06/25"
         envelope_fingerprint: "52d8c58d3dda4cf6c4431ef3ac5ccb11"
-        envelope_signing_embed: |
-          <iframe src="https://sign.signable.app/#kVXVoBHVOBwh8ijT56DXYhSIasdbrNsyD6OyDAKdWMZ" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect: false
         envelope_requires_otp: true
         envelope_redirect_url: "https://www.example.com"
