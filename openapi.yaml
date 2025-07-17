@@ -176,11 +176,11 @@ paths:
           - Provide a `document_url` (a publicly accessible PDF, Word, or Excel file), **or**
           - Include `document_file_content` (base64-encoded file) and `document_file_name`
 
-          **Option 2 – Reference a saved Signable template:**
+          **Option 2 – Reference a Signable template:**
           - Use a `document_template_fingerprint`
           - Optionally provide `document_merge_fields` for pre-filling content
 
-          > ⚠️ **Note:** Only one document input method can be used per request.
+          ⚠️ **Note:** Only one document input method can be used per request.
       operationId: sendEnvelope
       tags:
         - Envelopes
@@ -192,11 +192,14 @@ paths:
               oneOf:
                 - $ref: '#/components/schemas/EnvelopeSendDocRequest'
                 - $ref: '#/components/schemas/EnvelopeSendTemplateRequest'
+                - $ref: '#/components/schemas/EnvelopeSendTemplateMultipleRequest'
             examples:
               with_document:
                 $ref: '#/components/examples/EnvelopeSendDocRequestExample'
               from_template:
                 $ref: '#/components/examples/EnvelopeSendTemplateRequestExample'
+              from_template_multiple:
+                $ref: '#/components/examples/EnvelopeSendTemplateMultipleRequestExample'
       responses:
         '202':
           description: Envelope successfully created and queued
@@ -208,7 +211,9 @@ paths:
                 with_document:
                   $ref: '#/components/examples/EnvelopeSendDocResponseExample'
                 from_template:
-                  $ref: '#/components/examples/EnvelopeSendTemplateResponseExample'    
+                  $ref: '#/components/examples/EnvelopeSendTemplateResponseExample'
+                from_template_multiple:
+                  $ref: '#/components/examples/EnvelopeSendTemplateMultipleResponseExample'
 
   /envelopes/{envelope_fingerprint}:
     get:
@@ -1281,6 +1286,10 @@ components:
             An embeddable HTML `<iframe>` snippet that renders the signing view within your application.
             This field is returned **only if embed signing has been enabled on your account** by the Signable Support team.
             To request access, please contact us at [Contact Signable](https://www.signable.co.uk/contact).
+
+            ⚠️ **Notes:**
+            This field is only returned in the POST response. The field is not returned in GET `/envelopes/{envelope_fingerprint}`.
+            This field is only available when sending envelopes using templates (single or multiple).
           example: |
             <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect:
@@ -1399,6 +1408,77 @@ components:
           items:
             $ref: '#/components/schemas/EnvelopeSendTemplate'
 
+    EnvelopeSendTemplateMultipleRequest:
+      type: object
+      required:
+        - envelope_title
+        - envelope_parties
+        - envelope_documents
+      properties:
+        envelope_title:
+          type: string
+          description: Title of the envelope.
+          example: Barnsley Road 21/04/25
+        user_id:
+          type: integer
+          description: >
+            ID of the user sending the envelope. If omitted, it won’t be linked to 
+            a user and email notifications will be sent to the company email address.
+          example: 819622
+        envelope_redirect_url:
+          type: string
+          format: uri
+          description: >
+            Where to redirect the signer after completion. Defaults to Signable’s 
+            confirmation page if not provided.
+          example: https://www.example.com
+        envelope_all_at_once_enabled:
+          type: boolean
+          description: >
+            If true, sends to all parties at once. If false, sends 
+            sequentially (one-at-a-time).
+          example: true
+        envelope_requires_otp:
+          type: boolean
+          description: >
+            Enables one-time-password (OTP) signing for all signers.
+            Requires `party_mobile` and disallows `envelope_password_protect`.
+          example: true
+        envelope_password_protect:
+          type: boolean
+          description: >
+            Enables password protection. System generates a password or use `party_password` 
+            per party.
+          example: false
+        envelope_auto_expire_hours:
+          type: integer
+          description: Number of hours until the envelope expires.
+          example: 144
+        envelope_auto_remind_hours:
+          type: integer
+          description: Frequency in hours to send signer reminders.
+          example: 72
+        envelope_meta:
+          type: object
+          description: Custom metadata stored alongside the envelope.
+          additionalProperties: true
+          example:
+            internal_id: ABC123
+            VIP: false
+        envelope_parties:
+          type: array
+          description: >
+            List of parties involved in the envelope. Each party can be a signer or a copy recipient. 
+            If `envelope_all_at_once_enabled` is set to `false`, signers will be notified sequentially 
+            based on the order they appear in this array. Copy recipients (with role `copy`) are notified 
+            only after all signers have completed their actions.
+          items:
+            $ref: '#/components/schemas/EnvelopeSendPartyTemplateMultiple'
+        envelope_documents:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvelopeSendTemplate'
+
     EnvelopeSendPartyTemplate:
       type: object
       required:
@@ -1435,6 +1515,64 @@ components:
           type: string
           description: Custom password for accessing the envelope (used only if `envelope_password_protect` is true).
           example: secret123
+
+    EnvelopeSendPartyTemplateMultiple:
+      type: object
+      required:
+        - party_name
+        - party_email
+        - party_role
+        - party_documents
+      properties:
+        party_name:
+          type: string
+          example: Alex Mitchell
+        party_email:
+          type: string
+          format: email
+          example: andy+alex@wearedomo.com
+        party_documents:
+          type: array
+          description: A list of documents that this party is assigned to within the envelope.
+          items:
+            $ref: '#/components/schemas/EnvelopeSendPartyTemplateMultipleDocuments'
+        party_role:
+          type: string
+          enum: [signer, copy]
+          description: Role in the document.
+          example: signer
+        party_message:
+          type: string
+          description: Optional message included in the email sent to the party.
+          example: Hello Alex, Please review and sign.
+        party_mobile:
+          type: string
+          description: Mobile number in E.164 format (required for signers if `envelope_requires_otp` is true).
+          example: "+447510417059"
+        party_password:
+          type: string
+          description: Custom password for accessing the envelope (used only if `envelope_password_protect` is true).
+          example: secret123
+
+    EnvelopeSendPartyTemplateMultipleDocuments:
+      type: object
+      required:
+        - party_id
+        - document_template_fingerprint
+      properties:
+        party_id:
+          type: string
+          description: >
+            The unique ID of the party as defined in the associated Signable template. 
+            This is used to map the envelope party to their role in a specific document.
+          example: "20748256"
+        document_template_fingerprint:
+          type: string
+          description: >
+            The fingerprint of the document template the party should be assigned to. 
+            This allows fine-grained control over which parties are included in which documents 
+            when sending from a multi-document template.
+          example: 28f9add86f25028df2eee9adee866aba
 
     EnvelopeSendTemplate:
       type: object
@@ -3473,6 +3611,8 @@ components:
         href: "https://api.signable.co.uk/v1/envelopes/52d8c58d3dda4cf6c4431ef3ac5ccb11"
         envelope_title: "Singer Road 23/06/25"
         envelope_fingerprint: "52d8c58d3dda4cf6c4431ef3ac5ccb11"
+        envelope_signing_embed: |
+          <iframe src="https://sign.signable.app/#kVXVoBHVOBwh8ijT56DXYhSIasdbrNsyD6OyDAKdWMZ" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect: false
         envelope_requires_otp: true
         envelope_redirect_url: "https://www.example.com"
@@ -3497,7 +3637,7 @@ components:
             party_password: null
 
     EnvelopeSendTemplateRequestExample:
-      summary: Example send envelope (using Template) request
+      summary: Example send envelope (using single template) request
       value:
         envelope_title: Melbourne Road 23/06/25
         user_id: 819622
@@ -3536,7 +3676,7 @@ components:
                 field_value: Note that breakables are not included in rent cost
 
     EnvelopeSendTemplateResponseExample:
-      summary: Example send envelope (using Template) successful response
+      summary: Example send envelope (using single template) successful response
       value:
         http: 202
         message: "Your envelope with title Melbourne Road 23/06/25 will be processed and sent out."
@@ -3559,6 +3699,88 @@ components:
             party_mobile_last4: "7059"
             party_password: null
           - party_id: "45855083"
+            party_title: "Spectator"
+            party_mobile_last4: null
+            party_password: null
+
+    EnvelopeSendTemplateMultipleRequestExample:
+      summary: Example send envelope (using multiple templates) successful response
+      value:
+        envelope_title: Barnsley Road 21/04/25
+        user_id: 819622
+        envelope_redirect_url: https://www.example.com
+        envelope_all_at_once_enabled: true
+        envelope_requires_otp: true
+        envelope_password_protect: false
+        envelope_auto_expire_hours: 144
+        envelope_auto_remind_hours: 72
+        envelope_meta:
+          internal_id: ABC123
+          VIP: false
+        envelope_parties:
+          - party_name: Alex Mitchell
+            party_email: andy+alex@wearedomo.com
+            party_role: signer
+            party_message: Hello Alex, Please review and sign
+            party_mobile: "+447510417059"
+            party_documents:
+              - party_id: 20748256
+                document_template_fingerprint: 28f9add86f25028df2eee9adee866aba
+
+          - party_name: Andy Signers
+            party_email: andy@wearedomo.com
+            party_role: signer
+            party_message: Hello, Please sign pronto!
+            party_mobile: "+447510417059"
+            party_documents:
+              - party_id: 20748265
+                document_template_fingerprint: 88d2c9e8dc4a69ce1cd97ac1684f3e45
+              - party_id: 20748255
+                document_template_fingerprint: 28f9add86f25028df2eee9adee866aba
+
+          - party_name: Spectator
+            party_email: andy+spectator@wearedomo.com
+            party_role: copy
+            party_message: Hello Maisy, Please have a read
+            party_documents:
+              - party_id: 20750393
+                document_template_fingerprint: 28f9add86f25028df2eee9adee866aba
+
+        envelope_documents:
+          - document_title: TC 2025 v2
+            document_template_fingerprint: 28f9add86f25028df2eee9adee866aba
+            document_merge_fields:
+              - field_id: "454958773"
+                field_value: Note that breakables are not included in rent cost
+
+          - document_title: TC 2025 v3
+            document_template_fingerprint: 88d2c9e8dc4a69ce1cd97ac1684f3e45
+
+    EnvelopeSendTemplateMultipleResponseExample:
+      summary: Example send envelope (using multiple templates) successful response
+      value:
+        http: 202
+        message: "Your envelope with title Barnsley Road 21/04/25 will be processed and sent out."
+        href: "https://api.signable.co.uk/v1/envelopes/32b11e8562701f55a216f2212dbd7255"
+        envelope_title: "Barnsley Road 21/04/25"
+        envelope_fingerprint: "32b11e8562701f55a216f2212dbd7255"
+        envelope_signing_embed: |
+          <iframe src="https://sign.signable.app/#kVXVoBHVOBwh8ijT56DXYhSIjTIcrNsyD6OyDAKdWMZ" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
+        envelope_password_protect: false
+        envelope_redirect_url: "https://www.example.com"
+        envelope_queued: "2025-07-17T13:42:35+0000"
+        envelope_all_at_once_enabled: true
+        envelope_requires_otp: true
+        envelope_parties:
+          - party_id: "45880606"
+            party_title: "Alex Mitchell"
+            party_mobile_last4: "7059"
+            party_password: null
+          - party_id: "45880607"
+            party_title: "Andy Signers"
+            party_mobile_last4: "7059"
+            party_password: null
+          - party_id: "45880608"
             party_title: "Spectator"
             party_mobile_last4: null
             party_password: null
