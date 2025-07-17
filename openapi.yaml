@@ -1406,7 +1406,8 @@ components:
             HTML iframe snippet to embed the signing view in your application.
             This field is returned **only if embed signing has been enabled on your account** by the Signable Support team.
             To request access, please contact us at [Contact Signable](https://www.signable.co.uk/contact).
-          example: <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
+          example: |
+            <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect:
           type: boolean
           description: Whether password protection is enabled for the envelope.
