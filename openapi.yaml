@@ -167,10 +167,14 @@ paths:
 
     post:
       summary: Send an envelope
-      description: >
-        Creates and queues an envelope for sending. Only one method of document input is allowed per request, this can be:
-        - Including
-        - Using a pre-existing Signable template. You must reference the template fingerprint and provide all required merge field values.
+      description: |
+        Creates and queues an envelope for sending.
+
+        Only one method of document input is allowed per request, this can be:
+        - **Option 1** Including the document in the request body, within this you can either:
+          - Link to the document URL
+          - Send the file content encoded in Base64
+        - **Option 2** Using a pre-existing Signable template
       operationId: sendEnvelope
       tags:
         - Envelopes
@@ -193,9 +197,7 @@ paths:
           content:
             application/json:
               schema:
-                oneOf:
-                  - $ref: '#/components/schemas/EnvelopeSendDocResponse'
-                  - $ref: '#/components/schemas/EnvelopeSendTemplateResponse'
+                  - $ref: '#/components/schemas/EnvelopeSendResponse'
               examples:
                 with_document:
                   $ref: '#/components/examples/EnvelopeSendDocResponseExample'
@@ -1126,6 +1128,9 @@ components:
         - type: object
           required:
             - http
+            - envelope_parties
+            - envelope_documents
+            - envelope_history
           properties:
             http:
               type: integer
@@ -1218,11 +1223,11 @@ components:
             VIP: false
         envelope_parties:
           type: array
-          description: >
-            List of parties involved in the envelope. Each party can be a signer or a copy recipient. 
-            If `envelope_all_at_once_enabled` is set to `false`, signers will be notified sequentially 
-            based on the order they appear in this array. Copy recipients (with role `copy`) are notified 
-            only after all signers have completed their actions.
+          description: |
+            List of parties involved in the envelope. 
+            Each party can be a signer or a copy recipient. 
+            If `envelope_all_at_once_enabled` is set to `false`, signers will be notified sequentially based on the order they appear in this array.
+            Copy recipients (with role `copy`) are notified only after all signers have completed their actions.
           items:
             $ref: '#/components/schemas/EnvelopeSendPartyDoc'
         envelope_documents:
@@ -1232,9 +1237,16 @@ components:
           items:
             $ref: '#/components/schemas/EnvelopeSendDocument'
 
-    EnvelopeSendDocResponse:
+    EnvelopeSendResponse:
       type: object
-      description: Response returned when an envelope is successfully queued for sending.
+      required:
+        - http
+        - message
+        - href
+        - envelope_title
+        - envelope_fingerprint
+        - envelope_queued
+        - envelope_parties
       properties:
         http:
           type: integer
@@ -1257,6 +1269,14 @@ components:
           type: string
           description: Unique identifier (hash) for the envelope.
           example: b0ce54032b7bee24fca780193ba95fe0
+        envelope_signing_embed:
+          type: string
+          description: |
+            An embeddable HTML `<iframe>` snippet that renders the signing view within your application.
+            This field is returned **only if embed signing has been enabled on your account** by the Signable Support team.
+            To request access, please contact us at [Contact Signable](https://www.signable.co.uk/contact).
+          example: |
+            <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
         envelope_password_protect:
           type: boolean
           description: Indicates if password protection was enabled on the envelope.
@@ -1374,90 +1394,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/EnvelopeSendTemplate'
-
-    EnvelopeSendTemplateResponse:
-      type: object
-      description: Response returned when an envelope is successfully created from a template.
-      properties:
-        http:
-          type: integer
-          description: HTTP status code indicating successful queueing.
-          example: 202
-        message:
-          type: string
-          description: Confirmation message indicating envelope was accepted.
-          example: Your envelope with title Melbourne Road 23/06/25 will be processed and sent out.
-        href:
-          type: string
-          format: uri
-          description: URL to the created envelope resource.
-          example: https://api.signable.co.uk/v1/envelopes/a248811cb18e9fe2388b38a5607f5160
-        envelope_title:
-          type: string
-          description: Title of the envelope.
-          example: Melbourne Road 23/06/25
-        envelope_fingerprint:
-          type: string
-          description: Unique identifier for the envelope.
-          example: a248811cb18e9fe2388b38a5607f5160
-        envelope_signing_embed:
-          type: string
-          description: >
-            HTML iframe snippet to embed the signing view in your application.
-            This field is returned **only if embed signing has been enabled on your account** by the Signable Support team.
-            To request access, please contact us at [Contact Signable](https://www.signable.co.uk/contact).
-          example: |
-            <iframe src="https://sign.signable.app/#yXqPrm7HVOaiQUNM4NZI34BocfDWB69lf68lHq90R0s" width="100%" height="95%" frameborder="0" style="border: 0; overflow: hidden"></iframe>
-        envelope_password_protect:
-          type: boolean
-          description: Whether password protection is enabled for the envelope.
-          example: false
-        envelope_redirect_url:
-          type: string
-          format: uri
-          description: >
-            URL that the signer is redirected to upon signing completion.
-            Defaults to Signable’s confirmation page if not provided.
-          example: https://www.example.com
-        envelope_queued:
-          type: string
-          format: date-time
-          description: Timestamp when the envelope was successfully queued.
-          example: 2025-07-16T16:30:23+0000
-        envelope_all_at_once_enabled:
-          type: boolean
-          description: Whether all parties are notified simultaneously (`true`) or sequentially (`false`).
-          example: true
-        envelope_requires_otp:
-          type: boolean
-          description: >
-            Whether one-time-password (OTP) signing was enabled for the envelope.
-            Requires `party_mobile` and disallows `envelope_password_protect`.
-          example: true
-        envelope_parties:
-          type: array
-          description: List of all parties associated with the envelope and their status details.
-          items:
-            type: object
-            properties:
-              party_id:
-                type: string
-                description: Unique identifier of the party within the envelope.
-                example: "45855081"
-              party_title:
-                type: string
-                description: Name or title of the party.
-                example: Alex Mitchell
-              party_mobile_last4:
-                type: string
-                nullable: true
-                description: Last 4 digits of the party’s mobile number, if OTP is enabled.
-                example: "7059"
-              party_password:
-                type: string
-                nullable: true
-                description: Password used by the party to access the document, if password protection is enabled.
-                example: null
 
     EnvelopeSendPartyTemplate:
       type: object
