@@ -168,13 +168,19 @@ paths:
     post:
       summary: Send an envelope
       description: |
-        Creates and queues an envelope for sending.
+          Creates and queues a new envelope for sending.
 
-        Only one method of document input is allowed per request, this can be:
-        - **Option 1** Including the document in the request body, within this you can either:
-          - Link to the document URL
-          - Send the file content encoded in Base64
-        - **Option 2** Using a pre-existing Signable template
+          You must choose one of the following methods for attaching documents:
+
+          **Option 1 – Upload or link a document directly in the request body:**
+          - Provide a `document_url` (a publicly accessible PDF, Word, or Excel file), **or**
+          - Include `document_file_content` (base64-encoded file) and `document_file_name`
+
+          **Option 2 – Reference a saved Signable template:**
+          - Use a `document_template_fingerprint`
+          - Optionally provide `document_merge_fields` for pre-filling content
+
+          > ⚠️ **Note:** Only one document input method can be used per request.
       operationId: sendEnvelope
       tags:
         - Envelopes
@@ -193,7 +199,7 @@ paths:
                 $ref: '#/components/examples/EnvelopeSendTemplateRequestExample'
       responses:
         '202':
-          description: Envelope successfully queued
+          description: Envelope successfully created and queued
           content:
             application/json:
               schema:
