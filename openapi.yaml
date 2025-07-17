@@ -197,7 +197,7 @@ paths:
           content:
             application/json:
               schema:
-                  - $ref: '#/components/schemas/EnvelopeSendResponse'
+                $ref: '#/components/schemas/EnvelopeSendResponse'
               examples:
                 with_document:
                   $ref: '#/components/examples/EnvelopeSendDocResponseExample'
@@ -1314,13 +1314,11 @@ components:
                 description: Name of the party.
                 example: Alex Mitchell
               party_mobile_last4:
-                type: string
-                nullable: true
+                type: [string, "null"]
                 description: Last 4 digits of the party’s mobile number (if OTP is enabled).
                 example: "7059"
               party_password:
-                type: string
-                nullable: true
+                type: [string, "null"]
                 description: Password for party access if password protection was enabled.
                 example: null
 
@@ -1580,14 +1578,12 @@ components:
           format: date-time
           description: Timestamp when the envelope was created (ISO 8601).
         envelope_sent:
-          type: string
+          type: [string, "null"]
           format: date-time
-          nullable: true
           description: Timestamp when the envelope was sent. Null if not yet sent.
         envelope_processed:
-          type: string
+          type: [string, "null"]
           format: date-time
-          nullable: true
           description: Timestamp when the envelope was processed. Null if not yet processed.
         envelope_all_at_once_enabled:
           type: boolean
@@ -1626,13 +1622,11 @@ components:
           description: Label for the party, typically their name.
           example: "Andy Signable"
         party_mobile_last4:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: Last 4 digits of the party’s mobile number (if OTP is enabled).
           example: null
         party_password:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: Password assigned for accessing the envelope, if applicable.
           example: "Test123"
 
@@ -1671,9 +1665,8 @@ components:
               example: "signer"
 
     EnvelopeSignedPdfLink:
-      type: string
+      type: [string, "null"]
       format: uri
-      nullable: true
       description: Direct download link to the signed PDF (if the envelope is signed).
       example: "https://api.signableapi.com/shareable/envelope?t=71afe41f-b99f-42e7-9a06-7f4070df010f"
 
@@ -1760,8 +1753,7 @@ components:
           description: ID of the party this field is assigned to.
           example: "45631119"
         field_merge:
-          type: string
-          nullable: true
+          type: [string, "null"]
           description: Merge field label used to pre-fill values.
           example: "Sender Name"
 
@@ -2270,19 +2262,16 @@ components:
           format: date-time
           example: "2025-07-07T11:30:27+0000"
         envelope_sent:
-          type: string
+          type: [string, "null"]
           format: date-time
-          nullable: true
           example: null
         envelope_processed:
-          type: string
+          type: [string, "null"]
           format: date-time
-          nullable: true
           example: null
         envelope_signed_pdf:
-          type: string
+          type: [string, "null"]
           format: uri
-          nullable: true
           example: https://api.signableapi.com/shareable/envelope?t=403cebcc-60ec-4cc2-b7d6-753fb7d5c662
 
     ContactEnvelopesListResponse:
