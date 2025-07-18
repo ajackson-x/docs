@@ -23,6 +23,9 @@ servers:
 security:
   - basicAuth: []
 x-tagsGroups:
+  - name: Partners
+    tags:
+      - Partners
   - name: Envelopes
     tags:
       - Envelopes
@@ -130,6 +133,29 @@ webhooks:
   # need to add all the other webhooks
 
 paths:
+  /companies:
+    get:
+      summary: List sub-accounts
+      description: >
+        Returns a paginated list of sub-accounts associated with the Partner account.
+        This endpoint is only available to Signable Partners.
+      operationId: getCompanies
+      tags:
+        - Partners
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Successful response containing a list of sub-accounts.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompaniesListResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/CompaniesListResponseExample'
+
   /envelopes:
     get:
       summary: List envelopes
@@ -152,7 +178,7 @@ paths:
           schema:
             type: string
           description: >
-            Case-insensitive keyword search on the envelope title. 
+            Case-insensitive keyword filter on the envelope title. 
             Matches partial words. Null values return unfiltered results.
       responses:
         '200':
@@ -168,20 +194,13 @@ paths:
     post:
       summary: Send an envelope
       description: |
-          Creates and queues a new envelope for sending.
+          Creates and queues a new envelope for sending, using one of the following methods for attaching documents:
 
-          You must choose one of the following methods for attaching documents:
+          **Option 1 – Upload or link a document directly in the request body**
 
-          **Option 1 – Upload or link a document directly in the request body:**
-          - Provide a `document_url` (a publicly accessible PDF, Word, or Excel file), **or**
-          - Include `document_file_content` (base64-encoded file) and `document_file_name`
+          **Option 2 – Reference a single Signable template**
 
-          **Option 2 – Reference a single Signable template:**
-          - Use a single `document_template_fingerprint`
-
-          **Option 3 – Reference multiple Signable templates:**
-          - Use multiple `document_template_fingerprint` records
-          - Link parties to templates documents
+          **Option 3 – Reference multiple Signable templates**
 
           ⚠️ **Note:** Only one document input method can be used per request.
       operationId: sendEnvelope
@@ -199,9 +218,9 @@ paths:
             examples:
               with_document:
                 $ref: '#/components/examples/EnvelopeSendDocRequestExample'
-              from_template:
+              with_template:
                 $ref: '#/components/examples/EnvelopeSendTemplateRequestExample'
-              from_template_multiple:
+              with_template_multiple:
                 $ref: '#/components/examples/EnvelopeSendTemplateMultipleRequestExample'
       responses:
         '202':
@@ -213,9 +232,9 @@ paths:
               examples:
                 with_document:
                   $ref: '#/components/examples/EnvelopeSendDocResponseExample'
-                from_template:
+                with_template:
                   $ref: '#/components/examples/EnvelopeSendTemplateResponseExample'
-                from_template_multiple:
+                with_template_multiple:
                   $ref: '#/components/examples/EnvelopeSendTemplateMultipleResponseExample'
 
   /envelopes/{envelope_fingerprint}:
@@ -1106,6 +1125,61 @@ components:
           default: 10
 
   schemas:
+    components:
+      CompaniesListResponse:
+        type: object
+        description: Represents a paginated list of sub-accounts associated with a Partner account.
+        properties:
+          http:
+            type: integer
+            example: 200
+            description: HTTP status code indicating the result of the API request.
+          offset:
+            type: integer
+            example: 0
+            description: The number of items skipped before starting to collect the result set.
+          limit:
+            type: integer
+            example: 10
+            description: The maximum number of sub-accounts returned in the current response.
+          total_sub_accounts:
+            type: string
+            example: "2"
+            description: The total number of sub-accounts available to the authenticated Partner.
+          sub_accounts:
+            type: array
+            description: A list of sub-accounts returned in the current response.
+            items:
+              $ref: '#/components/schemas/Company'
+
+      Company:
+        type: object
+        description: Represents an individual sub-account created under a Partner account.
+        properties:
+          company_id:
+            type: string
+            example: "196735"
+            description: Unique identifier for the sub-account.
+          company_name:
+            type: string
+            example: "ExampleSubAccount_1"
+            description: The display name of the sub-account.
+          company_email:
+            type: string
+            format: email
+            example: "andy+1@wearedomo.com"
+            description: The registered email address associated with the sub-account.
+          company_api_key:
+            type: string
+            format: uuid
+            example: "9c66b129752046ac5bc02927a6ff1694"
+            description: The API key used to authenticate as this sub-account.
+          company_created:
+            type: string
+            format: date-time
+            example: "2024-09-03T09:03:12+0000"
+            description: The date and time when the sub-account was created.
+
     EnvelopeListResponse:
       type: object
       required:
@@ -3357,6 +3431,25 @@ components:
           example: all
 
   examples:
+    CompaniesListResponseExample:
+      summary: An example paginated list of sub-accounts.
+      value:
+        http: 200
+        offset: 0
+        limit: 10
+        total_companies: "2"
+        companies:
+          - company_id: "196735"
+            company_name: "ExampleSubAccount_1"
+            company_email: "andy+1@wearedomo.com"
+            company_api_key: "9c66b129752046ac5bc02927a6ff1694" #this has been changed! Not a real key.
+            company_created: "2024-09-03T09:03:12+0000"
+          - company_id: "196737"
+            company_name: "ExampleSubAccount_2"
+            company_email: "andy+2@wearedomo.com"
+            company_api_key: "bfaede25fe5c5d7cff4529da462874ae" #this has been changed! Not a real 
+            company_created: "2024-09-03T09:08:49+0000"
+
     EnvelopeListResponseExample:
       summary: An example paginated list of envelopes
       value:
