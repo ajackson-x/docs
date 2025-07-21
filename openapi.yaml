@@ -253,6 +253,58 @@ paths:
                 success:
                   $ref: '#/components/examples/CompanyUpdateResponseExample'
 
+    delete:
+      summary: Delete a sub-account
+      description: |
+        Permanently deletes a sub-account (company) from the Partner account.
+        
+        This operation is irreversible and can only be performed by Signable Partners.
+      operationId: deleteCompany
+      tags:
+        - Partners
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          description: Unique identifier of the sub-account to delete.
+          schema:
+            type: string
+            example: "214821"
+      responses:
+        '200':
+          description: Sub-account deleted successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyDeleteResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/CompanyDeleteResponseExample'
+
+  /usage:
+    get:
+      summary: View usage for all sub-accounts
+      description: |
+        Retrieves usage data for all sub-accounts under a Partner account, including current and previous period comparisons.
+        
+        This endpoint is only available to Signable Partners.
+      operationId: getCompaniesUsage
+      tags:
+        - Partners
+      parameters:
+        - $ref: '#/components/parameters/OffsetParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Usage data successfully returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerUsageResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/PartnerUsageResponseExample'
+
   /envelopes:
     get:
       summary: List envelopes
@@ -1426,6 +1478,123 @@ components:
           format: date-time
           example: "2025-07-21T08:30:27+0000"
           description: Timestamp of when the sub-account was last updated.
+
+    CompanyDeleteResponse:
+      type: object
+      required:
+        - http
+        - message
+        - company_id
+        - company_name
+        - company_email
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code indicating the result of the request.
+        message:
+          type: string
+          example: "Apple Tree Ltd has been removed."
+          description: Confirmation message indicating that the sub-account has been deleted.
+        company_id:
+          type: string
+          example: "214821"
+          description: Identifier of the deleted sub-account.
+        company_name:
+          type: string
+          example: "Apple Tree Ltd"
+          description: Name of the deleted sub-account.
+        company_email:
+          type: string
+          format: email
+          example: "andy@appletree.com"
+          description: Email address of the deleted sub-account.
+
+    PartnerUsageResponse:
+      type: object
+      required:
+        - http
+        - offset
+        - limit
+        - total_companies
+        - current_start_date
+        - current_end_date
+        - previous_start_date
+        - previous_end_date
+        - companies
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code of the response.
+        offset:
+          type: integer
+          example: 0
+          description: Number of sub-accounts skipped before the returned result set.
+        limit:
+          type: integer
+          example: 10
+          description: Maximum number of sub-accounts returned in the response.
+        total_companies:
+          type: string
+          example: "2"
+          description: Total number of sub-accounts available.
+        current_start_date:
+          type: string
+          format: date-time
+          example: "1969-12-01T00:00:00+0000"
+          description: Start of the current reporting period.
+        current_end_date:
+          type: string
+          format: date-time
+          example: "1970-01-01T00:00:00+0000"
+          description: End of the current reporting period.
+        previous_start_date:
+          type: string
+          format: date-time
+          example: "1969-11-01T00:00:00+0000"
+          description: Start of the previous reporting period.
+        previous_end_date:
+          type: string
+          format: date-time
+          example: "1969-12-01T00:00:00+0000"
+          description: End of the previous reporting period.
+        companies:
+          type: array
+          description: List of usage stats per sub-account.
+          items:
+            $ref: '#/components/schemas/SubAccountUsageSummary'
+
+    PartnerUsageSummary:
+      type: object
+      required:
+        - company_id
+        - company_name
+        - current_usage
+        - previous_usage
+        - company_created
+      properties:
+        company_id:
+          type: string
+          example: "196735"
+          description: Unique identifier of the sub-account.
+        company_name:
+          type: string
+          example: "ExampleSubAccount_1"
+          description: Name of the sub-account.
+        current_usage:
+          type: string
+          example: "1"
+          description: Number of documents sent in the current reporting period.
+        previous_usage:
+          type: string
+          example: "6"
+          description: Number of documents sent in the previous reporting period.
+        company_created:
+          type: string
+          format: date-time
+          example: "2024-09-03T09:03:12+0000"
+          description: Timestamp when the sub-account was created.
 
     Company:
       type: object
@@ -3801,6 +3970,38 @@ components:
         company_name: "Apple Tree Ltd"
         company_email: "andy@appletree.com"
         company_updated: "2025-07-21T08:30:27+0000"
+
+    CompanyDeleteResponseExample:
+      summary: Example response for successful deletion
+      value:
+        http: 200
+        message: "Apple Tree Ltd has been removed."
+        company_id: 214821
+        company_name: "Apple Tree Ltd"
+        company_email: "andy@appletree.com"
+
+    PartnerUsageResponseExample:
+      summary: Example usage data across 2 sub-accounts
+      value:
+        http: 200
+        offset: 0
+        limit: 10
+        total_companies: "4"
+        current_start_date: "2025-06-01T00:00:00+0000"
+        current_end_date: "2025-07-01T00:00:00+0000"
+        previous_start_date: "2025-05-01T00:00:00+0000"
+        previous_end_date: "2025-06-01T00:00:00+0000"
+        companies:
+          - company_id: "196735"
+            company_name: "ExampleSubAccount_1"
+            current_usage: "1"
+            previous_usage: "0"
+            company_created: "2024-09-03T09:03:12+0000"
+          - company_id: "196737"
+            company_name: "ExampleSubAccount_2"
+            current_usage: "6"
+            previous_usage: "15"
+            company_created: "2024-09-03T09:08:49+0000"
 
     EnvelopeListResponseExample:
       summary: An example paginated list of envelopes
