@@ -3986,11 +3986,11 @@ components:
         http: 200
         offset: 0
         limit: 10
-        total_companies: "4"
-        current_start_date: "2025-06-01T00:00:00+0000"
-        current_end_date: "2025-07-01T00:00:00+0000"
-        previous_start_date: "2025-05-01T00:00:00+0000"
-        previous_end_date: "2025-06-01T00:00:00+0000"
+        total_companies: "2"
+        current_start_date: "2025-07-01T00:00:00+0000"
+        current_end_date: "2025-08-01T00:00:00+0000"
+        previous_start_date: "2025-06-01T00:00:00+0000"
+        previous_end_date: "2025-07-01T00:00:00+0000"
         companies:
           - company_id: "196735"
             company_name: "ExampleSubAccount_1"
