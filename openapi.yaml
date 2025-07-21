@@ -156,6 +156,35 @@ paths:
               examples:
                 success:
                   $ref: '#/components/examples/CompanyListResponseExample'
+    
+    post:
+      summary: Create a sub-account
+      description: |
+        Creates a new sub-account under the Partner account.
+        
+        This endpoint is only available to Signable Partners.
+      operationId: createCompany
+      tags:
+        - Partners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyCreateRequest'
+            examples:
+              success:
+                $ref: '#/components/examples/CompanyCreateRequestExample'
+      responses:
+        '200':
+          description: Sub-account successfully created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyCreateResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/CompanyCreateResponseExample'
 
   /companies/{company_id}:
     get:
@@ -185,6 +214,44 @@ paths:
               examples:
                 success:
                   $ref: '#/components/examples/CompanyGetResponseExample'
+
+    put:
+      summary: Update a sub-account
+      description: |
+        Updates details of a specific sub-account associated with the authenticated Partner account.
+        
+        This endpoint is only available to Signable Partners.
+      operationId: updateCompany
+      tags:
+        - Partners
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          description: Unique identifier of the sub-account to update.
+          schema:
+            type: string
+            example: "214821"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CompanyUpdateRequest'
+            examples:
+              success:
+                $ref: '#/components/examples/CompanyUpdateRequestExample'
+
+      responses:
+        '200':
+          description: Sub-account updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyUpdateResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/CompanyUpdateResponseExample'
 
   /envelopes:
     get:
@@ -1158,6 +1225,12 @@ components:
     CompanyListResponse:
       type: object
       description: Represents a paginated list of sub-accounts associated with a Partner account.
+      required:
+            - http
+            - offset
+            - limit
+            - total_sub_accounts
+            - sub_accounts
       properties:
         http:
           type: integer
@@ -1197,10 +1270,162 @@ components:
           - company_usage
         properties:
           company_usage:
-          type: array
-          description: Monthly usage summary for the sub-account.
-          items:
-            $ref: '#/components/schemas/CompanyUsage'
+            type: array
+            description: Monthly usage summary for the sub-account.
+            items:
+              $ref: '#/components/schemas/CompanyUsage'
+
+    CompanyCreateRequest:
+      type: object
+      required:
+        - company_name
+        - user_name
+        - user_email
+      properties:
+        company_name:
+          type: string
+          example: "Example Inc"
+          description: The name of the new sub-account.
+        user_name:
+          type: string
+          example: "Andy Signs"
+          description: The full name of the initial user for the sub-account.
+        user_email:
+          type: string
+          format: email
+          example: "andy@example.com"
+          description: The email address of the user to be created within the sub-account.
+
+    CompanyCreateResponse:
+      type: object
+      required:
+        - http
+        - message
+        - href
+        - company_id
+        - company_name
+        - company_email
+        - api_key
+        - user_id
+        - user_name
+        - user_email
+        - user_href
+        - company_added
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code indicating the result of the request.
+        message:
+          type: string
+          example: "Example Inc has been added as a company"
+          description: A confirmation message.
+        href:
+          type: string
+          format: uri
+          example: "https://api.signable.co.uk/v1/companies/214821"
+          description: URL to the newly created sub-account resource.
+        company_id:
+          type: string
+          example: "214821"
+          description: Unique identifier of the newly created sub-account.
+        company_name:
+          type: string
+          example: "Example Inc"
+          description: Name of the newly created sub-account.
+        company_email:
+          type: string
+          format: email
+          example: "andy@example.com"
+          description: Registered email address for the sub-account.
+        api_key:
+          type: string
+          format: uuid
+          example: "de78a3e022ab288b1834347c8f609303" #changed, not real key.
+          description: API key associated with the sub-account.
+        user_id:
+          type: string
+          example: "838931"
+          description: ID of the user created within the sub-account.
+        user_name:
+          type: string
+          example: "Andy Signs"
+          description: Full name of the user created in the sub-account.
+        user_email:
+          type: string
+          format: email
+          example: "andy@example.com"
+          description: Email address of the created user.
+        user_href:
+          type: string
+          format: uri
+          example: "https://api.signable.co.uk/v1/users/838931"
+          description: URL to the created user resource.
+        company_added:
+          type: string
+          format: date-time
+          example: "2025-07-21T08:16:51+0000"
+          description: Timestamp when the sub-account was created.
+
+    CompanyUpdateRequest:
+      type: object
+      description: Payload to update a sub-account. At least one property must be provided.
+      properties:
+        company_name:
+          type: string
+          example: "Apple Tree Ltd"
+          description: New name of the sub-account.
+        company_email:
+          type: string
+          format: email
+          example: "andy@appletree.com"
+          description: New email address of the sub-account.
+      anyOf:
+        - required: [company_name]
+        - required: [company_email]
+
+    CompanyUpdateResponse:
+      type: object
+      required:
+        - http
+        - message
+        - href
+        - company_id
+        - company_name
+        - company_email
+        - company_updated
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code indicating the result of the request.
+        message:
+          type: string
+          example: "Apple Tree Ltd has been updated."
+          description: Confirmation message indicating the update was successful.
+        href:
+          type: string
+          format: uri
+          example: "https://api.signable.co.uk/v1/company/214821"
+          description: URL to the updated sub-account resource.
+        company_id:
+          type: string
+          example: "214821"
+          description: Unique identifier of the updated sub-account.
+        company_name:
+          type: string
+          example: "Apple Tree Ltd"
+          description: Updated name of the sub-account.
+        company_email:
+          type: string
+          format: email
+          example: "andy@appletree.com"
+          description: Updated email address of the sub-account.
+        company_updated:
+          type: string
+          format: date-time
+          example: "2025-07-21T08:30:27+0000"
+          description: Timestamp of when the sub-account was last updated.
 
     Company:
       type: object
@@ -3536,6 +3761,46 @@ components:
           - month: July
             year: "2025"
             sent: "1"
+
+    CompanyCreateRequestExample:
+      summary: Example create sub-account request
+      value:
+        company_name: Example Inc
+        user_name: Andy Signs
+        user_email: andy@example.com
+
+    CompanyCreateResponseExample:
+      summary: Example response for successfully creating a sub-account
+      value:
+        http: 200
+        message: "Example Inc has been added as a company"
+        href: "https://api.signable.co.uk/v1/companies/214821"
+        company_id: "214821"
+        company_name: "Example Inc"
+        company_email: "andy@example.com"
+        api_key: "de78a3e022ab288b1834347c8f609303" #changed, not real key.
+        user_id: "838931"
+        user_name: "Andy Signs"
+        user_email: "andy@example.com"
+        user_href: "https://api.signable.co.uk/v1/users/838931"
+        company_added: "2025-07-21T08:16:51+0000"
+
+    CompanyUpdateRequestExample:
+      summary: Example update sub-account request
+      value:
+        company_name: Apple Tree Ltd
+        company_email: andy@appletree.com
+
+    CompanyUpdateResponseExample:
+      summary: Example response for updating a sub-account
+      value:
+        http: 200
+        message: "Apple Tree Ltd has been updated."
+        href: "https://api.signable.co.uk/v1/company/214821"
+        company_id: 214821
+        company_name: "Apple Tree Ltd"
+        company_email: "andy@appletree.com"
+        company_updated: "2025-07-21T08:30:27+0000"
 
     EnvelopeListResponseExample:
       summary: An example paginated list of envelopes
