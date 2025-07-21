@@ -136,8 +136,9 @@ paths:
   /companies:
     get:
       summary: List sub-accounts
-      description: >
+      description: |
         Returns a paginated list of sub-accounts associated with the Partner account.
+        
         This endpoint is only available to Signable Partners.
       operationId: getCompanies
       tags:
@@ -151,10 +152,39 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CompaniesListResponse'
+                $ref: '#/components/schemas/CompanyListResponse'
               examples:
                 success:
-                  $ref: '#/components/examples/CompaniesListResponseExample'
+                  $ref: '#/components/examples/CompanyListResponseExample'
+
+  /companies/{company_id}:
+    get:
+      summary: Get a sub-account
+      description: |
+        Returns details about a specific sub-account associated with the Partner account.
+        
+        This endpoint is only available to Signable Partners.
+      operationId: getCompany
+      tags:
+        - Partners
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          description: Unique identifier of the sub-account.
+          schema:
+            type: string
+            example: "196735"
+      responses:
+        '200':
+          description: Details of the requested sub-account.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CompanyGetResponse'
+              examples:
+                success:
+                  $ref: '#/components/examples/CompanyGetResponseExample'
 
   /envelopes:
     get:
@@ -1125,60 +1155,103 @@ components:
           default: 10
 
   schemas:
-    components:
-      CompaniesListResponse:
-        type: object
-        description: Represents a paginated list of sub-accounts associated with a Partner account.
+    CompanyListResponse:
+      type: object
+      description: Represents a paginated list of sub-accounts associated with a Partner account.
+      properties:
+        http:
+          type: integer
+          example: 200
+          description: HTTP status code indicating the result of the API request.
+        offset:
+          type: integer
+          example: 0
+          description: The number of items skipped before starting to collect the result set.
+        limit:
+          type: integer
+          example: 10
+          description: The maximum number of sub-accounts returned in the current response.
+        total_sub_accounts:
+          type: string
+          example: "2"
+          description: The total number of sub-accounts available to the authenticated Partner.
+        sub_accounts:
+          type: array
+          description: A list of sub-accounts returned in the current response.
+          items:
+            $ref: '#/components/schemas/Company'
+      
+    CompanyGetResponse:
+      allOf:
+      - type: object
+        required:
+          - http
         properties:
           http:
             type: integer
+            description: HTTP status code of the response.
             example: 200
-            description: HTTP status code indicating the result of the API request.
-          offset:
-            type: integer
-            example: 0
-            description: The number of items skipped before starting to collect the result set.
-          limit:
-            type: integer
-            example: 10
-            description: The maximum number of sub-accounts returned in the current response.
-          total_sub_accounts:
-            type: string
-            example: "2"
-            description: The total number of sub-accounts available to the authenticated Partner.
-          sub_accounts:
-            type: array
-            description: A list of sub-accounts returned in the current response.
-            items:
-              $ref: '#/components/schemas/Company'
-
-      Company:
-        type: object
-        description: Represents an individual sub-account created under a Partner account.
+      - $ref: '#/components/schemas/Company'
+      - type: object
+        required:
+          - company_usage
         properties:
-          company_id:
-            type: string
-            example: "196735"
-            description: Unique identifier for the sub-account.
-          company_name:
-            type: string
-            example: "ExampleSubAccount_1"
-            description: The display name of the sub-account.
-          company_email:
-            type: string
-            format: email
-            example: "andy+1@wearedomo.com"
-            description: The registered email address associated with the sub-account.
-          company_api_key:
-            type: string
-            format: uuid
-            example: "9c66b129752046ac5bc02927a6ff1694"
-            description: The API key used to authenticate as this sub-account.
-          company_created:
-            type: string
-            format: date-time
-            example: "2024-09-03T09:03:12+0000"
-            description: The date and time when the sub-account was created.
+          company_usage:
+          type: array
+          description: Monthly usage summary for the sub-account.
+          items:
+            $ref: '#/components/schemas/CompanyUsage'
+
+    Company:
+      type: object
+      description: Represents an individual sub-account created under a Partner account.
+      required:
+            - company_id
+            - company_name
+            - company_email
+            - company_api_key
+            - company_created
+      properties:
+        company_id:
+          type: string
+          example: "196735"
+          description: Unique identifier for the sub-account.
+        company_name:
+          type: string
+          example: "ExampleSubAccount_1"
+          description: The display name of the sub-account.
+        company_email:
+          type: string
+          format: email
+          example: "andy+1@wearedomo.com"
+          description: The registered email address associated with the sub-account.
+        company_api_key:
+          type: string
+          format: uuid
+          example: "9c66b129752046ac5bc02927a6ff1694" #this has been changed! Not a real key.
+          description: The API key used to authenticate as this sub-account.
+        company_created:
+          type: string
+          format: date-time
+          example: "2024-09-03T09:03:12+0000"
+          description: The date and time when the sub-account was created.
+
+    CompanyUsage:
+      type: object
+      description: Represents document usage for a sub-account in a specific month and year.
+      properties:
+        month:
+          type: string
+          example: "July"
+          description: The calendar month this usage relates to.
+        year:
+          type: string
+          example: "2025"
+          description: The year this usage relates to.
+        sent:
+          type: string
+          example: "1"
+          description: The number of documents sent during the specified month.
 
     EnvelopeListResponse:
       type: object
@@ -3431,7 +3504,7 @@ components:
           example: all
 
   examples:
-    CompaniesListResponseExample:
+    CompanyListResponseExample:
       summary: An example paginated list of sub-accounts.
       value:
         http: 200
@@ -3449,6 +3522,20 @@ components:
             company_email: "andy+2@wearedomo.com"
             company_api_key: "bfaede25fe5c5d7cff4529da462874ae" #this has been changed! Not a real 
             company_created: "2024-09-03T09:08:49+0000"
+
+    CompanyGetResponseExample:
+      summary: An example paginated list of a single sub-account.
+      value:
+        http: 200
+        company_id: 196735
+        company_name: ExampleSubAccount_1
+        company_email: andy+1@wearedomo.com
+        company_api_key: 9c66b129752046ac5bc02927a6ff1694 #this has been changed! Not a real key.
+        company_created: 2024-09-03T09:03:12+0000
+        company_usage:
+          - month: July
+            year: "2025"
+            sent: "1"
 
     EnvelopeListResponseExample:
       summary: An example paginated list of envelopes
